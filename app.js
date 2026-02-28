@@ -1,23 +1,29 @@
 import { supabase } from "./supabase.js";
 
+/* SESSION GUARD */
+const page = window.location.pathname.split("/").pop();
+const employee = JSON.parse(localStorage.getItem("employee"));
+
+if (page === "dashboard.html" && !employee)
+  window.location.href = "index.html";
+
+if ((page === "" || page === "index.html") && employee)
+  window.location.href = "dashboard.html";
+
+
 /* LOGIN */
 window.login = async function () {
 
   const emp = document.getElementById("emp").value.trim();
-  const password = document.getElementById("pass").value.trim();
+  const pass = document.getElementById("pass").value.trim();
 
-  const { data, error } = await supabase
+  const { data } = await supabase
     .from("employees")
     .select("*")
     .eq("emp_id", emp)
     .single();
 
-  if (error || !data) {
-    alert("Employee not found");
-    return;
-  }
-
-  if (password !== data.pass) {
+  if (!data || pass !== data.pass) {
     alert("Invalid login");
     return;
   }
@@ -30,105 +36,160 @@ window.login = async function () {
 /* DASHBOARD LOAD */
 window.addEventListener("DOMContentLoaded", async () => {
 
-  const employee = JSON.parse(localStorage.getItem("employee"));
-  if(!employee) return;
+  if (!employee) return;
 
   document.getElementById("name").innerText = employee.full_name;
   document.getElementById("empid").innerText = employee.emp_id;
+  document.getElementById("todayDate").innerText =
+    new Date().toDateString();
 
-  const today = new Date().toLocaleDateString(undefined,
-    { weekday:'long', year:'numeric', month:'long', day:'numeric'});
-
-  document.getElementById("todayDate").innerText = today;
-
-  loadHistory(employee.emp_id);
+  await checkTodayStatus();
+  loadHistory();
+  syncOffline();
 });
 
 
-/* CLOCK IN WITH GPS + ADDRESS */
-window.clockIn = async function(){
+/* PREVENT DOUBLE CLOCK-IN */
+async function checkTodayStatus(){
 
-  const employee = JSON.parse(localStorage.getItem("employee"));
+  const today = new Date().toISOString().split("T")[0];
 
-  navigator.geolocation.getCurrentPosition(async (pos)=>{
+  const { data } = await supabase
+    .from("attendance_logs")
+    .select("log_time")
+    .eq("emp_id", employee.emp_id)
+    .gte("log_time", today)
+    .limit(1);
 
-    const lat = pos.coords.latitude;
-    const lon = pos.coords.longitude;
-    const accuracy = pos.coords.accuracy;
+  if(data && data.length > 0){
+    setActiveState();
+  }
+}
 
-    // Reverse geocode using OpenStreetMap
-    let address = "Unknown location";
 
-    try{
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
-      );
-      const geo = await res.json();
-      address = geo.display_name || address;
-    }catch(e){
-      console.log("Address lookup failed");
-    }
+function setActiveState(){
+  const badge = document.getElementById("statusBadge");
+  const btn = document.getElementById("clockBtn");
+
+  badge.innerText = "Active";
+  badge.className = "badge success";
+
+  if(btn){
+    btn.disabled = true;
+    btn.innerText = "Already Clocked In";
+  }
+}
+
+
+/* CLOCK IN */
+window.clockIn = function () {
+
+  const btn = document.getElementById("clockBtn");
+  btn.disabled = true;
+  btn.innerText = "Processing...";
+
+  navigator.geolocation.getCurrentPosition(async pos => {
 
     const record = {
       emp_id: employee.emp_id,
       log_time: new Date().toISOString(),
       device_id: "MOBILE_WEB",
       status: "IN",
-      latitude: lat,
-      longitude: lon,
-      accuracy: accuracy,
-      address: address,
+      latitude: pos.coords.latitude,
+      longitude: pos.coords.longitude,
+      accuracy: pos.coords.accuracy,
+      address: "Pending sync",
       device_type: "MOBILE_WEB"
     };
 
-    const { error } = await supabase
-      .from("attendance_logs")
-      .insert(record);
+    if (navigator.onLine)
+      await upload(record);
+    else
+      saveOffline(record);
 
-    if(error){
-      alert(error.message);
-      return;
-    }
+    setActiveState();
 
-    document.getElementById("statusBadge").innerText="Active";
-    document.getElementById("statusBadge").className="badge success";
-
-    loadHistory(employee.emp_id);
-  },
-  ()=> alert("Please enable GPS location"),
-  { enableHighAccuracy:true }
-  );
+  }, () => {
+    alert("Enable GPS");
+    btn.disabled = false;
+    btn.innerText = "Clock In";
+  });
 };
 
 
-/* LOAD HISTORY */
-async function loadHistory(emp_id){
+/* UPLOAD */
+async function upload(record) {
+
+  const { error } = await supabase
+    .from("attendance_logs")
+    .insert(record);
+
+  if (error) {
+    saveOffline(record);
+  }
+}
+
+
+/* OFFLINE STORAGE */
+function saveOffline(record){
+
+  let logs =
+    JSON.parse(localStorage.getItem("offlineLogs")) || [];
+
+  logs.push(record);
+
+  localStorage.setItem("offlineLogs", JSON.stringify(logs));
+}
+
+
+/* AUTO SYNC */
+window.addEventListener("online", syncOffline);
+
+async function syncOffline(){
+
+  let logs =
+    JSON.parse(localStorage.getItem("offlineLogs")) || [];
+
+  for(const log of logs)
+    await upload(log);
+
+  localStorage.removeItem("offlineLogs");
+}
+
+
+/* HISTORY */
+async function loadHistory(){
 
   const { data } = await supabase
     .from("attendance_logs")
     .select("*")
-    .eq("emp_id", emp_id)
+    .eq("emp_id", employee.emp_id)
     .order("log_time",{ascending:false})
-    .limit(3);
+    .limit(5);
 
   const container = document.getElementById("history");
-  container.innerHTML="";
+  container.innerHTML = "";
 
   if(!data) return;
 
   data.forEach(row=>{
-
     const d = new Date(row.log_time);
 
     container.innerHTML += `
       <div class="history-item">
         <div>
           <strong>${d.toLocaleDateString()}</strong><br>
-          Clock In ${d.toLocaleTimeString()}<br>
+          ${d.toLocaleTimeString()}<br>
           <small>${row.address || ""}</small>
         </div>
-        <span class="badge success">Active</span>
-      </div>
-    `;
+        <span class="badge success">IN</span>
+      </div>`;
   });
 }
+
+
+/* LOGOUT */
+window.logout = function(){
+  localStorage.removeItem("employee");
+  window.location = "index.html";
+};

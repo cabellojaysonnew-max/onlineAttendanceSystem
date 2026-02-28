@@ -2,35 +2,39 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Attendance</title>
+<title>DAR Field Attendance</title>
 <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
 <div class="container">
 
-<h1>Attendance</h1>
-<p id="todayDate" class="date"></p>
+<div class="dar-header">
+  <h2>Department of Agrarian Reform</h2>
+  <span>Field Attendance System</span>
+</div>
 
-<div class="profile card">
-<div class="avatar">J</div>
-<div>
+<h1>Field Attendance</h1>
+<p id="todayDate"></p>
+
+<div class="card">
 <h3 id="name"></h3>
 <p id="empid"></p>
 </div>
-</div>
 
 <div class="card">
-<div class="status-header">
-<h3>TODAY'S STATUS</h3>
 <span id="statusBadge" class="badge warning">Not Started</span>
-</div>
 
-<button class="clock-btn" onclick="clockIn()">Clock In</button>
+<button id="clockBtn" class="primary-btn big-btn" onclick="clockIn()">
+Clock In
+</button>
+
+<button class="secondary-btn" onclick="logout()">Logout</button>
 </div>
 
 <div class="card">
-<h3>RECENT HISTORY</h3>
+<h3>Recent History</h3>
 <div id="history"></div>
 </div>
 

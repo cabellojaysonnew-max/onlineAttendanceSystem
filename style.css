@@ -1,12 +1,13 @@
 body{
 font-family:Arial;
 background:#f4f6f8;
-margin:0;
 padding:20px;
+margin:0;
 }
 
 .center{
 display:flex;
+flex-direction:column;
 justify-content:center;
 align-items:center;
 height:100vh;
@@ -17,52 +18,70 @@ max-width:420px;
 margin:auto;
 }
 
+.dar-header{
+text-align:center;
+margin-bottom:20px;
+}
+
+.dar-header h2{
+margin:0;
+color:#2e7d32;
+font-weight:700;
+}
+
+.dar-header span{
+font-size:14px;
+color:#666;
+}
+
 .card{
 background:white;
-border-radius:16px;
 padding:20px;
+border-radius:18px;
 margin-top:15px;
-box-shadow:0 4px 12px rgba(0,0,0,0.08);
+box-shadow:0 6px 16px rgba(0,0,0,.1);
 }
 
 input{
 width:100%;
-padding:12px;
+padding:14px;
 margin:10px 0;
+font-size:16px;
 }
 
-button{
+.primary-btn{
 width:100%;
-padding:14px;
-border:none;
-border-radius:10px;
-background:#1faa7a;
+padding:18px;
+background:#2e7d32;
 color:white;
-font-size:16px;
+border:none;
+border-radius:14px;
+font-size:20px;
 cursor:pointer;
 }
 
-.profile{
-display:flex;
-align-items:center;
-gap:15px;
+.big-btn{
+font-size:24px;
+padding:24px;
+margin-top:10px;
 }
 
-.avatar{
-width:50px;
-height:50px;
-border-radius:50%;
-background:linear-gradient(135deg,#8e7bff,#6cc3ff);
-display:flex;
-align-items:center;
-justify-content:center;
+.secondary-btn{
+width:100%;
+padding:14px;
+background:#999;
 color:white;
+border:none;
+border-radius:12px;
+margin-top:10px;
 }
 
 .badge{
-padding:6px 12px;
+padding:8px 14px;
 border-radius:20px;
-font-size:12px;
+font-size:14px;
+display:inline-block;
+margin-bottom:10px;
 }
 
 .warning{
@@ -79,8 +98,5 @@ color:#117a43;
 display:flex;
 justify-content:space-between;
 margin-top:10px;
-}
-
-.date{
-color:#777;
+font-size:14px;
 }
