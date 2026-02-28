@@ -1,6 +1,6 @@
 import { supabase } from "./supabase.js";
 
-/* LOGIN USING EMPLOYEES TABLE */
+/* LOGIN */
 window.login = async function () {
 
   const emp = document.getElementById("emp").value.trim();
@@ -17,7 +17,6 @@ window.login = async function () {
     return;
   }
 
-  // Default password check (1111)
   if (password !== data.pass) {
     alert("Invalid login");
     return;
@@ -28,7 +27,25 @@ window.login = async function () {
 };
 
 
-/* CLOCK IN WITH GPS */
+/* LOAD DASHBOARD */
+window.addEventListener("DOMContentLoaded", async () => {
+
+  const employee = JSON.parse(localStorage.getItem("employee"));
+  if (!employee) return;
+
+  document.getElementById("name").innerText = employee.full_name;
+  document.getElementById("empid").innerText = employee.emp_id;
+
+  const today = new Date().toLocaleDateString(undefined,
+    { weekday:'long', year:'numeric', month:'long', day:'numeric'});
+
+  document.getElementById("todayDate").innerText = today;
+
+  loadHistory(employee.emp_id);
+});
+
+
+/* CLOCK IN */
 window.clockIn = async function(){
 
   navigator.geolocation.getCurrentPosition(async (pos)=>{
@@ -40,53 +57,44 @@ window.clockIn = async function(){
       emp_id: employee.emp_id,
       latitude: pos.coords.latitude,
       longitude: pos.coords.longitude,
-      log_time: new Date(),
-      synced:false
+      log_time: new Date()
     };
 
-    if(navigator.onLine){
-      await upload(record);
-    }else{
-      saveOffline(record);
-    }
+    await supabase.from("attendance_logs").insert(record);
 
-    document.getElementById("status").innerText =
-      "Attendance Recorded";
+    document.getElementById("statusBadge").innerText = "Active";
+    document.getElementById("statusBadge").className="badge success";
   });
 };
 
 
-async function upload(data){
-  const { error } = await supabase
+async function loadHistory(emp_id){
+
+  const { data } = await supabase
     .from("attendance_logs")
-    .insert(data);
+    .select("*")
+    .eq("emp_id", emp_id)
+    .order("log_time",{ascending:false})
+    .limit(3);
 
-  if(error){
-    saveOffline(data);
-  }
-}
+  const container = document.getElementById("historyList");
 
+  if(!data) return;
 
-function saveOffline(log){
-  let logs =
-    JSON.parse(localStorage.getItem("offlineLogs")) || [];
+  container.innerHTML="";
 
-  logs.push(log);
+  data.forEach(row=>{
 
-  localStorage.setItem("offlineLogs",
-    JSON.stringify(logs));
-}
+    const d = new Date(row.log_time);
 
-
-window.addEventListener("online", syncOffline);
-
-async function syncOffline(){
-  let logs =
-    JSON.parse(localStorage.getItem("offlineLogs")) || [];
-
-  for(const log of logs){
-    await upload(log);
-  }
-
-  localStorage.removeItem("offlineLogs");
+    container.innerHTML += `
+      <div class="history-item">
+        <div>
+          <strong>${d.toLocaleDateString()}</strong><br>
+          Clock In ${d.toLocaleTimeString()}
+        </div>
+        <span class="badge success">Active</span>
+      </div>
+    `;
+  });
 }
