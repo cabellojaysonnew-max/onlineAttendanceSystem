@@ -27,11 +27,11 @@ window.login = async function () {
 };
 
 
-/* LOAD DASHBOARD */
+/* DASHBOARD LOAD */
 window.addEventListener("DOMContentLoaded", async () => {
 
   const employee = JSON.parse(localStorage.getItem("employee"));
-  if (!employee) return;
+  if(!employee) return;
 
   document.getElementById("name").innerText = employee.full_name;
   document.getElementById("empid").innerText = employee.emp_id;
@@ -45,29 +45,63 @@ window.addEventListener("DOMContentLoaded", async () => {
 });
 
 
-/* CLOCK IN */
+/* CLOCK IN WITH GPS + ADDRESS */
 window.clockIn = async function(){
+
+  const employee = JSON.parse(localStorage.getItem("employee"));
 
   navigator.geolocation.getCurrentPosition(async (pos)=>{
 
-    const employee =
-      JSON.parse(localStorage.getItem("employee"));
+    const lat = pos.coords.latitude;
+    const lon = pos.coords.longitude;
+    const accuracy = pos.coords.accuracy;
+
+    // Reverse geocode using OpenStreetMap
+    let address = "Unknown location";
+
+    try{
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
+      );
+      const geo = await res.json();
+      address = geo.display_name || address;
+    }catch(e){
+      console.log("Address lookup failed");
+    }
 
     const record = {
       emp_id: employee.emp_id,
-      latitude: pos.coords.latitude,
-      longitude: pos.coords.longitude,
-      log_time: new Date()
+      log_time: new Date().toISOString(),
+      device_id: "MOBILE_WEB",
+      status: "IN",
+      latitude: lat,
+      longitude: lon,
+      accuracy: accuracy,
+      address: address,
+      device_type: "MOBILE_WEB"
     };
 
-    await supabase.from("attendance_logs").insert(record);
+    const { error } = await supabase
+      .from("attendance_logs")
+      .insert(record);
 
-    document.getElementById("statusBadge").innerText = "Active";
+    if(error){
+      alert(error.message);
+      return;
+    }
+
+    document.getElementById("statusBadge").innerText="Active";
     document.getElementById("statusBadge").className="badge success";
-  });
+
+    loadHistory(employee.emp_id);
+  },
+  ()=> alert("Please enable GPS location"),
+  { enableHighAccuracy:true }
+  );
 };
 
 
+/* LOAD HISTORY */
 async function loadHistory(emp_id){
 
   const { data } = await supabase
@@ -77,11 +111,10 @@ async function loadHistory(emp_id){
     .order("log_time",{ascending:false})
     .limit(3);
 
-  const container = document.getElementById("historyList");
+  const container = document.getElementById("history");
+  container.innerHTML="";
 
   if(!data) return;
-
-  container.innerHTML="";
 
   data.forEach(row=>{
 
@@ -91,7 +124,8 @@ async function loadHistory(emp_id){
       <div class="history-item">
         <div>
           <strong>${d.toLocaleDateString()}</strong><br>
-          Clock In ${d.toLocaleTimeString()}
+          Clock In ${d.toLocaleTimeString()}<br>
+          <small>${row.address || ""}</small>
         </div>
         <span class="badge success">Active</span>
       </div>
