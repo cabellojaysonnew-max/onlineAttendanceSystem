@@ -42,10 +42,11 @@ window.addEventListener("DOMContentLoaded",async()=>{
 
   await detectTodayAttendance();
   loadHistory();
+  syncOffline();
 });
 
 
-/* FIXED STATUS DETECTION (refresh-safe) */
+/* DETECT TODAY ATTENDANCE */
 async function detectTodayAttendance(){
 
   const start=new Date();
@@ -63,7 +64,6 @@ async function detectTodayAttendance(){
     setActive();
 }
 
-
 function setActive(){
   const badge=document.getElementById("statusBadge");
   const btn=document.getElementById("clockBtn");
@@ -76,7 +76,7 @@ function setActive(){
 }
 
 
-/* CLOCK IN */
+/* CLOCK IN ONLINE/OFFLINE */
 window.clockIn=function(){
 
   const btn=document.getElementById("clockBtn");
@@ -92,19 +92,14 @@ window.clockIn=function(){
       status:"IN",
       latitude:pos.coords.latitude,
       longitude:pos.coords.longitude,
-      accuracy:pos.coords.accuracy,
-      device_type:"MOBILE_WEB"
+      accuracy:pos.coords.accuracy
     };
 
-    const {error}=await supabase
-      .from("attendance_logs")
-      .insert(record);
-
-    if(error){
-      alert(error.message);
-      btn.disabled=false;
-      btn.innerText="Clock In";
-      return;
+    if(navigator.onLine){
+        await upload(record);
+    }else{
+        saveOffline(record);
+        alert("Saved offline. Will auto-sync.");
     }
 
     setActive();
@@ -116,6 +111,44 @@ window.clockIn=function(){
     btn.innerText="Clock In";
   },{enableHighAccuracy:true});
 };
+
+
+/* UPLOAD */
+async function upload(record){
+
+  const {error}=await supabase
+    .from("attendance_logs")
+    .insert(record);
+
+  if(error){
+    saveOffline(record);
+  }
+}
+
+
+/* OFFLINE STORAGE */
+function saveOffline(record){
+
+  let logs=JSON.parse(localStorage.getItem("offlineLogs"))||[];
+  logs.push(record);
+
+  localStorage.setItem("offlineLogs",JSON.stringify(logs));
+}
+
+
+/* AUTO SYNC */
+window.addEventListener("online",syncOffline);
+
+async function syncOffline(){
+
+  let logs=JSON.parse(localStorage.getItem("offlineLogs"))||[];
+
+  for(const log of logs){
+      await upload(log);
+  }
+
+  localStorage.removeItem("offlineLogs");
+}
 
 
 /* HISTORY */
