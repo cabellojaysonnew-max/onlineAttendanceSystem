@@ -1,24 +1,29 @@
 import { supabase } from "./supabase.js";
 
-/* LOGIN USING SUPABASE AUTH */
+/* LOGIN USING EMPLOYEES TABLE */
 window.login = async function () {
 
-  const emp = document.getElementById("emp").value;
-  const password = document.getElementById("pass").value;
+  const emp = document.getElementById("emp").value.trim();
+  const password = document.getElementById("pass").value.trim();
 
-  const email = emp + "@lgu.local";
+  const { data, error } = await supabase
+    .from("employees")
+    .select("*")
+    .eq("emp_id", emp)
+    .single();
 
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email: email,
-    password: password
-  });
+  if (error || !data) {
+    alert("Employee not found");
+    return;
+  }
 
-  if (error) {
+  // Default password check (1111)
+  if (password !== data.pass) {
     alert("Invalid login");
     return;
   }
 
-  localStorage.setItem("user", JSON.stringify(data.user));
+  localStorage.setItem("employee", JSON.stringify(data));
   window.location = "dashboard.html";
 };
 
@@ -28,10 +33,11 @@ window.clockIn = async function(){
 
   navigator.geolocation.getCurrentPosition(async (pos)=>{
 
-    const user = JSON.parse(localStorage.getItem("user"));
+    const employee =
+      JSON.parse(localStorage.getItem("employee"));
 
     const record = {
-      emp_id: user.email.split("@")[0],
+      emp_id: employee.emp_id,
       latitude: pos.coords.latitude,
       longitude: pos.coords.longitude,
       log_time: new Date(),
