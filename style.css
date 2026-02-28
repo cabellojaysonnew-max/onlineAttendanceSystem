@@ -119,5 +119,23 @@ color:#065f46;
 display:flex;
 justify-content:space-between;
 padding:12px 0;
-border-top:1px solid #eee;
+border-bottom:1px solid #eee;
+}
+
+.time{
+color:#1b5e20;
+font-weight:600;
+}
+
+.location{
+color:#666;
+font-size:13px;
+}
+
+.device-tag{
+background:#c9a227;
+color:white;
+padding:5px 10px;
+border-radius:8px;
+font-size:12px;
 }

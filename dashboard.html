@@ -6,37 +6,28 @@
 <title>DAR Field Attendance</title>
 <link rel="stylesheet" href="style.css">
 </head>
-
 <body class="app-bg">
 
 <div class="app-container">
-
 <div class="app-header">
 <h2>DAR Field Attendance</h2>
 </div>
 
-<div class="card profile-card">
-<div>
+<div class="card">
 <div class="profile-name" id="name"></div>
 <div class="profile-id" id="empid"></div>
 </div>
-</div>
 
-<div class="card status-card">
+<div class="card">
 <div id="statusBadge" class="badge warning">Not Started</div>
-
-<button id="clockBtn" class="primary-btn large-btn" onclick="clockIn()">
-Clock In
-</button>
-
+<button id="clockBtn" class="primary-btn large-btn" onclick="clockIn()">Clock In</button>
 <button class="logout-btn" onclick="logout()">Logout</button>
 </div>
 
-<div class="card history-card">
+<div class="card">
 <h3>Attendance History</h3>
 <div id="history"></div>
 </div>
-
 </div>
 
 <script type="module" src="app.js"></script>
