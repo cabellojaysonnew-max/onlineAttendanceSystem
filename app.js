@@ -1,34 +1,29 @@
 import { supabase } from "./supabase.js";
 
-/* ================= LOGIN ================= */
+const API = "http://YOUR_PC_IP:8000/login";
+
 window.login = async function () {
 
   const emp_id = document.getElementById("emp").value;
   const password = document.getElementById("pass").value;
 
-  const { data, error } = await supabase
-    .from("employees")
-    .select("*")
-    .eq("emp_id", emp_id)
-    .single();
+  const res = await fetch(API,{
+    method:"POST",
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({emp_id,password})
+  });
 
-  if (error || !data) {
-    alert("Employee not found");
-    return;
+  const data = await res.json();
+
+  if(data.success){
+    localStorage.setItem("employee",
+      JSON.stringify(data.employee));
+    location="dashboard.html";
+  }else{
+    alert("Invalid login");
   }
-
-  // SIMPLE PASSWORD CHECK (matches existing table)
-  if (password !== data.pass) {
-    alert("Invalid password");
-    return;
-  }
-
-  localStorage.setItem("employee", JSON.stringify(data));
-  window.location = "dashboard.html";
 };
 
-
-/* ================= CLOCK IN ================= */
 window.clockIn = async function(){
 
   navigator.geolocation.getCurrentPosition(async (pos)=>{
@@ -41,12 +36,12 @@ window.clockIn = async function(){
       latitude: pos.coords.latitude,
       longitude: pos.coords.longitude,
       log_time: new Date(),
-      synced: false
+      synced:false
     };
 
-    if (navigator.onLine) {
+    if(navigator.onLine){
       await upload(record);
-    } else {
+    }else{
       saveOffline(record);
     }
 
@@ -55,42 +50,31 @@ window.clockIn = async function(){
   });
 };
 
-
-/* ================= UPLOAD ================= */
 async function upload(data){
-
   const { error } = await supabase
     .from("attendance_logs")
     .insert(data);
 
-  if (error) {
+  if(error){
     saveOffline(data);
   }
 }
 
-
-/* ================= OFFLINE STORAGE ================= */
 function saveOffline(log){
-
   let logs =
     JSON.parse(localStorage.getItem("offlineLogs")) || [];
-
   logs.push(log);
-
   localStorage.setItem("offlineLogs",
     JSON.stringify(logs));
 }
 
-
-/* ================= AUTO SYNC ================= */
 window.addEventListener("online", syncOffline);
 
 async function syncOffline(){
-
   let logs =
     JSON.parse(localStorage.getItem("offlineLogs")) || [];
 
-  for (const log of logs){
+  for(const log of logs){
     await upload(log);
   }
 
