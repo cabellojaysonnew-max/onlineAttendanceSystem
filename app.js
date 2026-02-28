@@ -9,6 +9,7 @@ if(page==="dashboard.html" && !employee)
 if((page===""||page==="index.html") && employee)
   window.location.href="dashboard.html";
 
+/* LOGIN */
 window.login = async function(){
   const emp=document.getElementById("emp").value.trim();
   const pass=document.getElementById("pass").value.trim();
@@ -28,6 +29,7 @@ window.login = async function(){
   window.location="dashboard.html";
 };
 
+/* DASHBOARD LOAD */
 window.addEventListener("DOMContentLoaded",async()=>{
   if(!employee) return;
 
@@ -36,9 +38,9 @@ window.addEventListener("DOMContentLoaded",async()=>{
 
   await detectTodayAttendance();
   await loadHistory();
-  syncOffline();
 });
 
+/* DETECT TODAY ATTENDANCE */
 async function detectTodayAttendance(){
   const start=new Date();
   start.setHours(0,0,0,0);
@@ -67,12 +69,14 @@ function setActive(){
   btn.innerText="Already Clocked In";
 }
 
+/* CLOCK IN */
 window.clockIn=function(){
   const btn=document.getElementById("clockBtn");
   btn.disabled=true;
   btn.innerText="Processing...";
 
   navigator.geolocation.getCurrentPosition(async pos=>{
+
     const record={
       emp_id:employee.emp_id,
       log_time:new Date().toISOString(),
@@ -83,11 +87,7 @@ window.clockIn=function(){
       accuracy:pos.coords.accuracy
     };
 
-    if(navigator.onLine) await upload(record);
-    else{
-      saveOffline(record);
-      alert("Saved offline. Will auto-sync.");
-    }
+    await supabase.from("attendance_logs").insert(record);
 
     setActive();
     loadHistory();
@@ -99,33 +99,30 @@ window.clockIn=function(){
   },{enableHighAccuracy:true});
 };
 
-async function upload(record){
-  const {error}=await supabase
-    .from("attendance_logs")
-    .insert(record);
-  if(error) saveOffline(record);
+/* REVERSE GEOCODING */
+async function getPlaceName(lat, lon){
+  try{
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
+    );
+    const data = await res.json();
+
+    if(data.address){
+      return `${data.address.road || ""} ${data.address.city || data.address.town || ""}`;
+    }
+    return "Unknown location";
+  }catch{
+    return "Location unavailable";
+  }
 }
 
-function saveOffline(record){
-  let logs=JSON.parse(localStorage.getItem("offlineLogs"))||[];
-  logs.push(record);
-  localStorage.setItem("offlineLogs",JSON.stringify(logs));
-}
-
-window.addEventListener("online",syncOffline);
-
-async function syncOffline(){
-  let logs=JSON.parse(localStorage.getItem("offlineLogs"))||[];
-  for(const log of logs) await upload(log);
-  localStorage.removeItem("offlineLogs");
-}
-
+/* LOAD HISTORY */
 async function loadHistory(){
+
   const {data}=await supabase
     .from("attendance_logs")
     .select("*")
     .eq("emp_id",employee.emp_id)
-    .eq("device_id","MOBILE_WEB")
     .order("log_time",{ascending:false})
     .limit(10);
 
@@ -137,20 +134,28 @@ async function loadHistory(){
     return;
   }
 
-  data.forEach(row=>{
+  for(const row of data){
+
     const d=new Date(row.log_time);
+
+    let place="Location unavailable";
+    if(row.latitude && row.longitude){
+      place=await getPlaceName(row.latitude,row.longitude);
+    }
+
     container.innerHTML+=`
       <div class="history-item">
         <div>
           <strong>${d.toLocaleDateString()}</strong><br>
           <span class="time">${d.toLocaleTimeString()}</span><br>
-          <span class="location">📍 ${row.latitude}, ${row.longitude}</span>
+          <span class="location">📍 ${place}</span>
         </div>
-        <div class="device-tag">Mobile</div>
+        <div class="device-tag">${row.device_id || "Mobile"}</div>
       </div>`;
-  });
+  }
 }
 
+/* LOGOUT */
 window.logout=function(){
   localStorage.removeItem("employee");
   window.location="index.html";

@@ -41,7 +41,7 @@ justify-content:center;
 background:white;
 padding:25px;
 border-radius:18px;
-box-shadow:0 8px 20px rgba(0,0,0,.1);
+box-shadow:0 8px 20px rgba(0,0,0,.08);
 }
 
 input{
@@ -58,7 +58,7 @@ background:white;
 border-radius:18px;
 padding:20px;
 margin-top:15px;
-box-shadow:0 6px 14px rgba(0,0,0,.08);
+box-shadow:0 6px 14px rgba(0,0,0,.06);
 }
 
 .profile-name{
@@ -128,8 +128,9 @@ font-weight:600;
 }
 
 .location{
-color:#666;
+color:#444;
 font-size:13px;
+font-style:italic;
 }
 
 .device-tag{
