@@ -4,70 +4,69 @@ import { supabase } from "./supabase.js";
 const page = window.location.pathname.split("/").pop();
 const employee = JSON.parse(localStorage.getItem("employee"));
 
-if (page === "dashboard.html" && !employee)
-  window.location.href = "index.html";
+if(page==="dashboard.html" && !employee)
+  window.location.href="index.html";
 
-if ((page === "" || page === "index.html") && employee)
-  window.location.href = "dashboard.html";
+if((page===""||page==="index.html") && employee)
+  window.location.href="dashboard.html";
 
 /* LOGIN */
-window.login = async function () {
-  const emp = document.getElementById("emp").value.trim();
-  const pass = document.getElementById("pass").value.trim();
+window.login = async function(){
 
-  const { data } = await supabase
+  const emp=document.getElementById("emp").value.trim();
+  const pass=document.getElementById("pass").value.trim();
+
+  const {data}=await supabase
     .from("employees")
     .select("*")
-    .eq("emp_id", emp)
+    .eq("emp_id",emp)
     .single();
 
-  if (!data || pass !== data.pass) {
+  if(!data || pass!==data.pass){
     alert("Invalid login");
     return;
   }
 
-  localStorage.setItem("employee", JSON.stringify(data));
-  window.location = "dashboard.html";
+  localStorage.setItem("employee",JSON.stringify(data));
+  window.location="dashboard.html";
 };
 
+
 /* DASHBOARD LOAD */
-window.addEventListener("DOMContentLoaded", async () => {
+window.addEventListener("DOMContentLoaded",async()=>{
 
-  if (!employee) return;
+  if(!employee) return;
 
-  document.getElementById("name").innerText = employee.full_name;
-  document.getElementById("empid").innerText = employee.emp_id;
+  document.getElementById("name").innerText=employee.full_name;
+  document.getElementById("empid").innerText=employee.emp_id;
 
-  document.getElementById("todayDate").innerText =
-    new Date().toLocaleDateString(undefined,
-      { weekday:'long', year:'numeric', month:'long', day:'numeric'});
-
-  await checkTodayStatus();
+  await detectTodayAttendance();
   loadHistory();
 });
 
 
-/* CHECK TODAY STATUS */
-async function checkTodayStatus(){
+/* FIXED STATUS DETECTION (refresh-safe) */
+async function detectTodayAttendance(){
 
-  const startOfDay = new Date();
-  startOfDay.setHours(0,0,0,0);
+  const start=new Date();
+  start.setHours(0,0,0,0);
 
-  const { data } = await supabase
+  const {data}=await supabase
     .from("attendance_logs")
-    .select("*")
-    .eq("emp_id", employee.emp_id)
-    .gte("log_time", startOfDay.toISOString())
+    .select("id")
+    .eq("emp_id",employee.emp_id)
     .eq("status","IN")
+    .gte("log_time",start.toISOString())
     .limit(1);
 
-  if(data && data.length > 0)
-    setActiveState();
+  if(data && data.length>0)
+    setActive();
 }
 
-function setActiveState(){
-  const badge = document.getElementById("statusBadge");
-  const btn = document.getElementById("clockBtn");
+
+function setActive(){
+  const badge=document.getElementById("statusBadge");
+  const btn=document.getElementById("clockBtn");
 
   badge.innerText="Active";
   badge.className="badge success";
@@ -78,27 +77,26 @@ function setActiveState(){
 
 
 /* CLOCK IN */
-window.clockIn = function(){
+window.clockIn=function(){
 
-  const btn = document.getElementById("clockBtn");
+  const btn=document.getElementById("clockBtn");
   btn.disabled=true;
   btn.innerText="Processing...";
 
   navigator.geolocation.getCurrentPosition(async pos=>{
 
-    const record = {
-      emp_id: employee.emp_id,
-      log_time: new Date().toISOString(),
+    const record={
+      emp_id:employee.emp_id,
+      log_time:new Date().toISOString(),
       device_id:"MOBILE_WEB",
       status:"IN",
       latitude:pos.coords.latitude,
       longitude:pos.coords.longitude,
       accuracy:pos.coords.accuracy,
-      address:"Pending sync",
       device_type:"MOBILE_WEB"
     };
 
-    const { error } = await supabase
+    const {error}=await supabase
       .from("attendance_logs")
       .insert(record);
 
@@ -109,7 +107,7 @@ window.clockIn = function(){
       return;
     }
 
-    setActiveState();
+    setActive();
     loadHistory();
 
   },()=>{
@@ -120,31 +118,30 @@ window.clockIn = function(){
 };
 
 
-/* LOAD HISTORY WITH TIME + LOCATION */
+/* HISTORY */
 async function loadHistory(){
 
-  const { data } = await supabase
+  const {data}=await supabase
     .from("attendance_logs")
     .select("*")
-    .eq("emp_id", employee.emp_id)
+    .eq("emp_id",employee.emp_id)
     .order("log_time",{ascending:false})
     .limit(7);
 
-  const container = document.getElementById("history");
+  const container=document.getElementById("history");
   container.innerHTML="";
 
   if(!data) return;
 
   data.forEach(row=>{
 
-    const d = new Date(row.log_time);
+    const d=new Date(row.log_time);
 
-    container.innerHTML += `
+    container.innerHTML+=`
       <div class="history-item">
         <div>
           <strong>${d.toLocaleDateString()}</strong><br>
-          ${d.toLocaleTimeString()}<br>
-          <span class="location">${row.address || "Location unavailable"}</span>
+          ${d.toLocaleTimeString()}
         </div>
         <span class="badge success">IN</span>
       </div>`;

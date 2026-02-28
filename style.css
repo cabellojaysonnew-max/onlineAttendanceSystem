@@ -1,49 +1,68 @@
 body{
-font-family:'Segoe UI',Arial;
-background:#f4f6f5;
 margin:0;
+font-family:Segoe UI,Arial;
+background:#eef2ef;
+}
+
+.app-bg{
+display:flex;
+justify-content:center;
+}
+
+.app-container{
+width:100%;
+max-width:420px;
 padding:20px;
 }
 
-.center{
-display:flex;
-flex-direction:column;
-justify-content:center;
-align-items:center;
-height:100vh;
-}
-
-.container{
-max-width:420px;
-margin:auto;
-}
-
-/* DAR HEADER */
-.dar-header{
+.app-header{
 text-align:center;
-margin-bottom:25px;
+margin-bottom:20px;
 }
 
-.dar-header h2{
+.app-header h2{
 margin:0;
 color:#1b5e20;
 }
 
-.dar-header span{
+.app-header span{
 color:#c9a227;
-font-weight:600;
+font-size:14px;
+}
+
+/* LOGIN */
+.login-screen{
+height:100vh;
+display:flex;
+flex-direction:column;
+justify-content:center;
+}
+
+.login-card{
+background:white;
+padding:25px;
+border-radius:18px;
+box-shadow:0 8px 20px rgba(0,0,0,.1);
+}
+
+input{
+width:100%;
+padding:14px;
+margin-top:10px;
+border-radius:12px;
+border:1px solid #ddd;
+font-size:16px;
 }
 
 /* CARDS */
 .card{
 background:white;
-padding:22px;
 border-radius:18px;
-margin-top:18px;
-box-shadow:0 8px 18px rgba(0,0,0,.08);
+padding:20px;
+margin-top:15px;
+box-shadow:0 6px 14px rgba(0,0,0,.08);
 }
 
-/* PROFILE */
 .profile-name{
 font-size:20px;
 font-weight:600;
@@ -58,23 +77,19 @@ color:#666;
 .primary-btn{
 width:100%;
 padding:18px;
-background:linear-gradient(135deg,#1b5e20,#2e7d32);
-color:white;
 border:none;
 border-radius:14px;
+background:linear-gradient(135deg,#1b5e20,#2e7d32);
+color:white;
 font-size:20px;
-cursor:pointer;
+margin-top:10px;
 }
 
-.primary-btn:disabled{
-background:#9ca3af;
-}
-
-.big-btn{
+.large-btn{
 font-size:24px;
 }
 
-.secondary-btn{
+.logout-btn{
 width:100%;
 padding:14px;
 margin-top:12px;
@@ -87,11 +102,11 @@ font-weight:600;
 
 /* BADGES */
 .badge{
+display:inline-block;
 padding:6px 14px;
 border-radius:999px;
+margin-bottom:10px;
 font-size:13px;
-display:inline-block;
-margin-bottom:12px;
 }
 
 .warning{
@@ -108,13 +123,6 @@ color:#065f46;
 .history-item{
 display:flex;
 justify-content:space-between;
-align-items:center;
-margin-top:14px;
-padding-top:14px;
+padding:12px 0;
 border-top:1px solid #eee;
-}
-
-.location{
-color:#555;
-font-size:13px;
 }
