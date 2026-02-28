@@ -10,10 +10,8 @@ if (page === "dashboard.html" && !employee)
 if ((page === "" || page === "index.html") && employee)
   window.location.href = "dashboard.html";
 
-
 /* LOGIN */
 window.login = async function () {
-
   const emp = document.getElementById("emp").value.trim();
   const pass = document.getElementById("pass").value.trim();
 
@@ -32,7 +30,6 @@ window.login = async function () {
   window.location = "dashboard.html";
 };
 
-
 /* DASHBOARD LOAD */
 window.addEventListener("DOMContentLoaded", async () => {
 
@@ -40,124 +37,90 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   document.getElementById("name").innerText = employee.full_name;
   document.getElementById("empid").innerText = employee.emp_id;
+
   document.getElementById("todayDate").innerText =
-    new Date().toDateString();
+    new Date().toLocaleDateString(undefined,
+      { weekday:'long', year:'numeric', month:'long', day:'numeric'});
 
   await checkTodayStatus();
   loadHistory();
-  syncOffline();
 });
 
 
-/* PREVENT DOUBLE CLOCK-IN */
+/* CHECK TODAY STATUS */
 async function checkTodayStatus(){
 
-  const today = new Date().toISOString().split("T")[0];
+  const startOfDay = new Date();
+  startOfDay.setHours(0,0,0,0);
 
   const { data } = await supabase
     .from("attendance_logs")
-    .select("log_time")
+    .select("*")
     .eq("emp_id", employee.emp_id)
-    .gte("log_time", today)
+    .gte("log_time", startOfDay.toISOString())
+    .eq("status","IN")
     .limit(1);
 
-  if(data && data.length > 0){
+  if(data && data.length > 0)
     setActiveState();
-  }
 }
-
 
 function setActiveState(){
   const badge = document.getElementById("statusBadge");
   const btn = document.getElementById("clockBtn");
 
-  badge.innerText = "Active";
-  badge.className = "badge success";
+  badge.innerText="Active";
+  badge.className="badge success";
 
-  if(btn){
-    btn.disabled = true;
-    btn.innerText = "Already Clocked In";
-  }
+  btn.disabled=true;
+  btn.innerText="Already Clocked In";
 }
 
 
 /* CLOCK IN */
-window.clockIn = function () {
+window.clockIn = function(){
 
   const btn = document.getElementById("clockBtn");
-  btn.disabled = true;
-  btn.innerText = "Processing...";
+  btn.disabled=true;
+  btn.innerText="Processing...";
 
-  navigator.geolocation.getCurrentPosition(async pos => {
+  navigator.geolocation.getCurrentPosition(async pos=>{
 
     const record = {
       emp_id: employee.emp_id,
       log_time: new Date().toISOString(),
-      device_id: "MOBILE_WEB",
-      status: "IN",
-      latitude: pos.coords.latitude,
-      longitude: pos.coords.longitude,
-      accuracy: pos.coords.accuracy,
-      address: "Pending sync",
-      device_type: "MOBILE_WEB"
+      device_id:"MOBILE_WEB",
+      status:"IN",
+      latitude:pos.coords.latitude,
+      longitude:pos.coords.longitude,
+      accuracy:pos.coords.accuracy,
+      address:"Pending sync",
+      device_type:"MOBILE_WEB"
     };
 
-    if (navigator.onLine)
-      await upload(record);
-    else
-      saveOffline(record);
+    const { error } = await supabase
+      .from("attendance_logs")
+      .insert(record);
+
+    if(error){
+      alert(error.message);
+      btn.disabled=false;
+      btn.innerText="Clock In";
+      return;
+    }
 
     setActiveState();
+    loadHistory();
 
-  }, () => {
+  },()=>{
     alert("Enable GPS");
-    btn.disabled = false;
-    btn.innerText = "Clock In";
-  });
+    btn.disabled=false;
+    btn.innerText="Clock In";
+  },{enableHighAccuracy:true});
 };
 
 
-/* UPLOAD */
-async function upload(record) {
-
-  const { error } = await supabase
-    .from("attendance_logs")
-    .insert(record);
-
-  if (error) {
-    saveOffline(record);
-  }
-}
-
-
-/* OFFLINE STORAGE */
-function saveOffline(record){
-
-  let logs =
-    JSON.parse(localStorage.getItem("offlineLogs")) || [];
-
-  logs.push(record);
-
-  localStorage.setItem("offlineLogs", JSON.stringify(logs));
-}
-
-
-/* AUTO SYNC */
-window.addEventListener("online", syncOffline);
-
-async function syncOffline(){
-
-  let logs =
-    JSON.parse(localStorage.getItem("offlineLogs")) || [];
-
-  for(const log of logs)
-    await upload(log);
-
-  localStorage.removeItem("offlineLogs");
-}
-
-
-/* HISTORY */
+/* LOAD HISTORY WITH TIME + LOCATION */
 async function loadHistory(){
 
   const { data } = await supabase
@@ -165,14 +128,15 @@ async function loadHistory(){
     .select("*")
     .eq("emp_id", employee.emp_id)
     .order("log_time",{ascending:false})
-    .limit(5);
+    .limit(7);
 
   const container = document.getElementById("history");
-  container.innerHTML = "";
+  container.innerHTML="";
 
   if(!data) return;
 
   data.forEach(row=>{
+
     const d = new Date(row.log_time);
 
     container.innerHTML += `
@@ -180,7 +144,7 @@ async function loadHistory(){
         <div>
           <strong>${d.toLocaleDateString()}</strong><br>
           ${d.toLocaleTimeString()}<br>
-          <small>${row.address || ""}</small>
+          <span class="location">${row.address || "Location unavailable"}</span>
         </div>
         <span class="badge success">IN</span>
       </div>`;
@@ -189,7 +153,7 @@ async function loadHistory(){
 
 
 /* LOGOUT */
-window.logout = function(){
+window.logout=function(){
   localStorage.removeItem("employee");
-  window.location = "index.html";
+  window.location="index.html";
 };
