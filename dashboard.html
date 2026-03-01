@@ -4,33 +4,30 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DAR Dashboard</title>
+<title>Dashboard</title>
 <link rel="stylesheet" href="style.css">
 </head>
+<body class="bg">
 
-<body class="app-bg">
+<div class="container">
+    <img src="logo_dar.png" class="logo small"/>
+    <h2>DAR Field Attendance</h2>
 
-<div class="app-container">
+    <div class="card">
+        <h3 id="name"></h3>
+        <p id="empid"></p>
+    </div>
 
-<img src="logo_dar.png" class="logo-center small"/>
+    <div class="card">
+        <button id="clockBtn" onclick="clockIn()" class="btn">Clock In</button>
+        <button onclick="logout()" class="btn gold">Logout</button>
+        <p id="clockError" class="error"></p>
+    </div>
 
-<h2 class="dash-title">DAR Field Attendance</h2>
-
-<div class="card">
-    <h3 id="empName"></h3>
-    <p id="empId"></p>
-</div>
-
-<div class="card">
-    <button class="primary-btn" id="clockBtn" onclick="clockIn()">Clock In</button>
-    <button class="secondary-btn" onclick="logout()">Logout</button>
-</div>
-
-<div class="card">
-    <h3>Attendance History</h3>
-    <div id="history"></div>
-</div>
-
+    <div class="card">
+        <h3>Last 20 Mobile Logs</h3>
+        <div id="history"></div>
+    </div>
 </div>
 
 <script src="app.js"></script>
