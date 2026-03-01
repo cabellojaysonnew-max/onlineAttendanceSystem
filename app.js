@@ -29,8 +29,7 @@ window.login = async function(){
   window.location="dashboard.html";
 };
 
-/* DASHBOARD LOAD */
-window.addEventListener("DOMContentLoaded",async()=>{
+window.addEventListener("DOMContentLoaded", async ()=>{
   if(!employee) return;
 
   document.getElementById("name").innerText=employee.full_name;
@@ -40,7 +39,7 @@ window.addEventListener("DOMContentLoaded",async()=>{
   await loadHistory();
 });
 
-/* DETECT TODAY ATTENDANCE */
+/* CHECK TODAY */
 async function detectTodayAttendance(){
   const start=new Date();
   start.setHours(0,0,0,0);
@@ -51,31 +50,52 @@ async function detectTodayAttendance(){
     .from("attendance_logs")
     .select("id")
     .eq("emp_id",employee.emp_id)
-    .eq("status","IN")
+    .eq("device_id","MOBILE_WEB")
     .gte("log_time",start.toISOString())
-    .lt("log_time",end.toISOString())
-    .limit(1);
+    .lt("log_time",end.toISOString());
 
-  if(data && data.length>0) setActive();
+  if(data && data.length>0){
+    document.getElementById("statusBadge").innerText="Active";
+    document.getElementById("statusBadge").className="badge success";
+
+    const btn=document.getElementById("clockBtn");
+    btn.disabled=true;
+    btn.innerText="Already Clocked In";
+  }
 }
 
-function setActive(){
-  const badge=document.getElementById("statusBadge");
-  const btn=document.getElementById("clockBtn");
+/* FORCE GPS REFRESH */
+function getFreshLocation(){
 
-  badge.innerText="Active";
-  badge.className="badge success";
-  btn.disabled=true;
-  btn.innerText="Already Clocked In";
+  return new Promise((resolve,reject)=>{
+
+    navigator.geolocation.getCurrentPosition(
+      pos=>resolve(pos),
+      err=>reject(err),
+      {
+        enableHighAccuracy:true,
+        timeout:15000,
+        maximumAge:0   // ⭐ FORCE NEW GPS FIX
+      }
+    );
+
+  });
 }
 
 /* CLOCK IN */
-window.clockIn=function(){
+window.clockIn = async function(){
+
   const btn=document.getElementById("clockBtn");
   btn.disabled=true;
-  btn.innerText="Processing...";
+  btn.innerText="Getting GPS...";
 
-  navigator.geolocation.getCurrentPosition(async pos=>{
+  try{
+
+    // Request fresh GPS twice (fix slow devices)
+    await getFreshLocation();
+    const pos = await getFreshLocation();
+
+    btn.innerText="Recording attendance...";
 
     const record={
       emp_id:employee.emp_id,
@@ -89,74 +109,66 @@ window.clockIn=function(){
 
     await supabase.from("attendance_logs").insert(record);
 
-    setActive();
-    loadHistory();
+    location.reload();
 
-  },()=>{
-    alert("Enable GPS");
+  }catch(e){
+    alert("Unable to get updated GPS. Please enable location.");
     btn.disabled=false;
     btn.innerText="Clock In";
-  },{enableHighAccuracy:true});
+  }
 };
 
-/* REVERSE GEOCODING */
-async function getPlaceName(lat, lon){
-  try{
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
-    );
-    const data = await res.json();
-
-    if(data.address){
-      return `${data.address.road || ""} ${data.address.city || data.address.town || ""}`;
-    }
-    return "Unknown location";
-  }catch{
-    return "Location unavailable";
-  }
+/* REVERSE GEOCODE */
+async function getPlaceName(lat,lon){
+ try{
+  const r=await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+  const d=await r.json();
+  return d.display_name || "Unknown location";
+ }catch{
+  return "Location unavailable";
+ }
 }
 
 /* LOAD HISTORY */
 async function loadHistory(){
 
-  const {data}=await supabase
-    .from("attendance_logs")
-    .select("*")
-    .eq("emp_id",employee.emp_id)
-    .order("log_time",{ascending:false})
-    .limit(10);
+ const {data}=await supabase
+  .from("attendance_logs")
+  .select("*")
+  .eq("emp_id",employee.emp_id)
+  .eq("device_id","MOBILE_WEB")
+  .order("log_time",{ascending:false})
+  .limit(10);
 
-  const container=document.getElementById("history");
-  container.innerHTML="";
+ const container=document.getElementById("history");
+ container.innerHTML="";
 
-  if(!data || data.length===0){
-    container.innerHTML="<p>No attendance records.</p>";
-    return;
-  }
+ if(!data || data.length===0){
+  container.innerHTML="<p>No field attendance records.</p>";
+  return;
+ }
 
-  for(const row of data){
+ for(const row of data){
 
-    const d=new Date(row.log_time);
+  const d=new Date(row.log_time);
+  let place="Loading location...";
 
-    let place="Location unavailable";
-    if(row.latitude && row.longitude){
-      place=await getPlaceName(row.latitude,row.longitude);
-    }
+  if(row.latitude && row.longitude)
+    place=await getPlaceName(row.latitude,row.longitude);
 
-    container.innerHTML+=`
-      <div class="history-item">
-        <div>
-          <strong>${d.toLocaleDateString()}</strong><br>
-          <span class="time">${d.toLocaleTimeString()}</span><br>
-          <span class="location">📍 ${place}</span>
-        </div>
-        <div class="device-tag">${row.device_id || "Mobile"}</div>
-      </div>`;
-  }
+  container.innerHTML+=`
+   <div class="history-item">
+     <div>
+       <strong>${d.toLocaleDateString()}</strong><br>
+       <span class="time">${d.toLocaleTimeString()}</span><br>
+       <span class="location">📍 ${place}</span>
+     </div>
+     <div class="device-tag">FIELD</div>
+   </div>`;
+ }
 }
 
-/* LOGOUT */
 window.logout=function(){
-  localStorage.removeItem("employee");
-  window.location="index.html";
+ localStorage.removeItem("employee");
+ window.location="index.html";
 };

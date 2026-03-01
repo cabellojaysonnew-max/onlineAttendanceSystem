@@ -1,142 +1,21 @@
-body{
-margin:0;
-font-family:Segoe UI,Arial;
-background:#eef2ef;
-}
-
-.app-bg{
-display:flex;
-justify-content:center;
-}
-
-.app-container{
-width:100%;
-max-width:420px;
-padding:20px;
-}
-
-.app-header{
-text-align:center;
-margin-bottom:20px;
-}
-
-.app-header h2{
-margin:0;
-color:#1b5e20;
-}
-
-.app-header span{
-color:#c9a227;
-font-size:14px;
-}
-
-.login-screen{
-height:100vh;
-display:flex;
-flex-direction:column;
-justify-content:center;
-}
-
-.login-card{
-background:white;
-padding:25px;
-border-radius:18px;
-box-shadow:0 8px 20px rgba(0,0,0,.08);
-}
-
-input{
-width:100%;
-padding:14px;
-margin-top:10px;
-border-radius:12px;
-border:1px solid #ddd;
-font-size:16px;
-}
-
-.card{
-background:white;
-border-radius:18px;
-padding:20px;
-margin-top:15px;
-box-shadow:0 6px 14px rgba(0,0,0,.06);
-}
-
-.profile-name{
-font-size:20px;
-font-weight:600;
-color:#1b5e20;
-}
-
-.profile-id{
-color:#666;
-}
-
-.primary-btn{
-width:100%;
-padding:18px;
-border:none;
-border-radius:14px;
-background:linear-gradient(135deg,#1b5e20,#2e7d32);
-color:white;
-font-size:20px;
-margin-top:10px;
-}
-
-.large-btn{
-font-size:24px;
-}
-
-.logout-btn{
-width:100%;
-padding:14px;
-margin-top:12px;
-border:none;
-border-radius:12px;
-background:#c9a227;
-color:white;
-font-weight:600;
-}
-
-.badge{
-display:inline-block;
-padding:6px 14px;
-border-radius:999px;
-margin-bottom:10px;
-font-size:13px;
-}
-
-.warning{
-background:#fde7c3;
-color:#b45309;
-}
-
-.success{
-background:#d1fae5;
-color:#065f46;
-}
-
-.history-item{
-display:flex;
-justify-content:space-between;
-padding:12px 0;
-border-bottom:1px solid #eee;
-}
-
-.time{
-color:#1b5e20;
-font-weight:600;
-}
-
-.location{
-color:#444;
-font-size:13px;
-font-style:italic;
-}
-
-.device-tag{
-background:#c9a227;
-color:white;
-padding:5px 10px;
-border-radius:8px;
-font-size:12px;
-}
+body{margin:0;font-family:Segoe UI;background:#eef2ef;}
+.app-bg{display:flex;justify-content:center;}
+.app-container{width:100%;max-width:420px;padding:20px;}
+.app-header{text-align:center;margin-bottom:20px;}
+.app-header h2{color:#1b5e20;margin:0;}
+.app-header span{color:#c9a227;font-size:14px;}
+.login-screen{height:100vh;display:flex;flex-direction:column;justify-content:center;}
+.login-card{background:white;padding:25px;border-radius:18px;box-shadow:0 6px 14px rgba(0,0,0,.08);}
+input{width:100%;padding:14px;margin-top:10px;border-radius:12px;border:1px solid #ddd;}
+.card{background:white;border-radius:18px;padding:20px;margin-top:15px;box-shadow:0 6px 14px rgba(0,0,0,.06);}
+.profile-name{font-size:20px;font-weight:600;color:#1b5e20;}
+.profile-id{color:#666;}
+.primary-btn{width:100%;padding:18px;border:none;border-radius:14px;background:#1b5e20;color:white;font-size:20px;margin-top:10px;}
+.logout-btn{width:100%;padding:14px;margin-top:12px;border:none;border-radius:12px;background:#c9a227;color:white;}
+.badge{padding:6px 14px;border-radius:999px;margin-bottom:10px;display:inline-block;}
+.warning{background:#fde7c3;color:#b45309;}
+.success{background:#d1fae5;color:#065f46;}
+.history-item{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #eee;}
+.time{color:#1b5e20;font-weight:600;}
+.location{font-size:13px;color:#444;font-style:italic;}
+.device-tag{background:#c9a227;color:white;padding:5px 10px;border-radius:8px;font-size:12px;}

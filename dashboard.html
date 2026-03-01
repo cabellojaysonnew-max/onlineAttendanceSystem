@@ -4,8 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>DAR Field Attendance</title>
+<link rel="manifest" href="manifest.json">
 <link rel="stylesheet" href="style.css">
 </head>
+
 <body class="app-bg">
 
 <div class="app-container">
@@ -15,8 +17,8 @@
 </div>
 
 <div class="card">
-<div class="profile-name" id="name"></div>
-<div class="profile-id" id="empid"></div>
+<div id="name" class="profile-name"></div>
+<div id="empid" class="profile-id"></div>
 </div>
 
 <div class="card">
@@ -33,5 +35,11 @@
 </div>
 
 <script type="module" src="app.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
+</script>
+
 </body>
 </html>
