@@ -10,11 +10,9 @@
 
 <body class="bg">
 
-<div class="wrapper">
+<div class="container">
 
 <img src="logo_dar.png" class="logo small">
-
-<h2 class="dash-title">Field Attendance</h2>
 
 <div class="card">
 <h3 id="name"></h3>
@@ -22,9 +20,9 @@
 </div>
 
 <div class="card">
-<button id="clockBtn" class="primary" onclick="clockIn()">Clock In</button>
-<button class="secondary" onclick="logout()">Logout</button>
-<p id="clockError" class="error"></p>
+<button id="clockBtn" onclick="clockIn()">Clock In</button>
+<button class="gold" onclick="logout()">Logout</button>
+<p id="status"></p>
 </div>
 
 <div class="card">

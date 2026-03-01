@@ -6,22 +6,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>DAR Field Attendance</title>
 <link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/dist/bcrypt.min.js"></script>
 </head>
 
 <body class="bg">
 
-<div class="wrapper center">
+<div class="container center">
 
 <img src="logo_dar.png" class="logo">
 
-<h1 class="title">DAR CAMARINES SUR 1</h1>
+<h1>DAR CAMARINES SUR 1</h1>
 <p class="subtitle">Field Attendance Monitoring System</p>
 
 <div class="card">
-<input id="emp" class="input" placeholder="Employee ID">
-<input id="pass" class="input" type="password" placeholder="Password">
-<button class="primary" onclick="login()">Login</button>
-<p id="loginError" class="error"></p>
+<input id="emp" placeholder="Employee ID">
+<input id="pass" type="password" placeholder="Password">
+<button onclick="login()">Login</button>
+<p id="error" class="error"></p>
 </div>
 
 </div>
