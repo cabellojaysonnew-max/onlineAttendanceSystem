@@ -13,8 +13,20 @@ function getDeviceId(){
   return id;
 }
 
-const loginBtn=document.getElementById("loginBtn");
-if(loginBtn){ loginBtn.addEventListener("click",login); }
+/* WAIT UNTIL PAGE LOADS */
+document.addEventListener("DOMContentLoaded", () => {
+
+  const loginBtn = document.getElementById("loginBtn");
+  if(loginBtn){
+    loginBtn.addEventListener("click", login);
+  }
+
+  const employee = JSON.parse(localStorage.getItem("employee"));
+  if(employee){
+    initDashboard(employee);
+  }
+
+});
 
 async function login(){
 
@@ -53,10 +65,7 @@ async function login(){
   window.location="dashboard.html";
 }
 
-const employee=JSON.parse(localStorage.getItem("employee"));
-if(employee){ initDashboard(); }
-
-async function initDashboard(){
+async function initDashboard(employee){
 
   const nameEl=document.getElementById("name");
   if(!nameEl) return;
@@ -78,10 +87,12 @@ async function initDashboard(){
     clockBtn.addEventListener("click",clockIn);
   }
 
-  await loadHistory();
+  await loadHistory(employee);
 }
 
 async function clockIn(){
+
+  const employee=JSON.parse(localStorage.getItem("employee"));
 
   const pos=await new Promise((resolve,reject)=>{
     navigator.geolocation.getCurrentPosition(resolve,reject,{
@@ -119,7 +130,7 @@ async function getPlaceName(lat,lon){
   }
 }
 
-async function loadHistory(){
+async function loadHistory(employee){
 
   const container=document.getElementById("history");
   if(!container) return;
