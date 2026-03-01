@@ -10,128 +10,156 @@ function headers(){
  };
 }
 
-// ===== ERROR SYSTEM =====
-function showError(msg,details=""){
- console.error(msg,details);
- let box=document.getElementById("errorBox");
- if(!box){
-   box=document.createElement("div");
-   box.id="errorBox";
-   document.body.appendChild(box);
- }
- box.innerHTML="⚠️ "+msg+"<br>"+details;
- setTimeout(()=>box.remove(),6000);
+function showError(msg){
+ alert("⚠️ "+msg);
 }
 
-window.onerror=(m,s,l)=>showError("Script error",m+" line "+l);
-window.onunhandledrejection=e=>showError("Async error",e.reason);
-
-// SAFE FETCH
 async function safeFetch(url,opt={}){
- try{
-  const r=await fetch(url,opt);
-  if(!r.ok){
+ const r=await fetch(url,opt);
+ if(!r.ok){
    const t=await r.text();
    throw new Error(t);
-  }
-  return await r.json();
- }catch(e){
-  showError("Network/Supabase error",e.message);
-  throw e;
  }
+ return await r.json();
+}
+
+// DEVICE ID
+function getDeviceId(emp){
+ let id=localStorage.getItem("device_id");
+ if(!id){
+   id="DARMO-"+emp+"-"+Math.random().toString(36).substring(2,10);
+   localStorage.setItem("device_id",id);
+ }
+ return id;
 }
 
 // LOGIN
 document.getElementById("loginBtn").onclick=async()=>{
  try{
-  const emp=document.getElementById("empId").value.trim();
-  const pass=document.getElementById("password").value.trim();
+ const emp=document.getElementById("empId").value.trim();
+ const pass=document.getElementById("password").value.trim();
 
-  const data=await safeFetch(API+"/employees?emp_id=eq."+emp,{headers:headers()});
+ const users=await safeFetch(API+"/employees?emp_id=eq."+emp,{headers:headers()});
+ if(!users.length) return showError("User not found");
 
-  if(!data.length) return showError("User not found");
+ const user=users[0];
 
-  // bcrypt already validated externally
-  if(pass==="1111" || data[0].pass.startsWith("$2")){
-    localStorage.setItem("session",emp);
-    loadDashboard();
-  }else{
-    showError("Invalid password");
-  }
- }catch(e){}
+ if(!(pass==="1111" || user.pass.startsWith("$2")))
+   return showError("Invalid password");
+
+ const deviceId=getDeviceId(emp);
+
+ // register first device
+ if(!user.mobile_device_id){
+   await fetch(API+"/employees?emp_id=eq."+emp,{
+     method:"PATCH",
+     headers:headers(),
+     body:JSON.stringify({mobile_device_id:deviceId})
+   });
+ }else if(user.mobile_device_id!==deviceId){
+   return showError("Account registered to another mobile device");
+ }
+
+ localStorage.setItem("session",emp);
+ loadDashboard();
+
+ }catch(e){showError(e.message)}
 };
 
 // DASHBOARD
 function loadDashboard(){
- document.getElementById("loginView").classList.add("hidden");
+ document.getElementById("loginCard").classList.add("hidden");
  document.getElementById("dashboard").classList.remove("hidden");
  loadLogs();
+ syncOffline();
 }
 
-// LOAD LOGS (mobile only)
+// LOAD MOBILE LOGS ONLY
 async function loadLogs(){
  const emp=localStorage.getItem("session");
+
  const logs=await safeFetch(
-  API+`/attendance_logs?emp_id=eq.${emp}&device_type=eq.MOBILE_WEB&order=log_time.desc&limit=20`,
-  {headers:headers()}
- );
+ API+`/attendance_logs?emp_id=eq.${emp}&device_type=eq.MOBILE_WEB&order=log_time.desc&limit=20`,
+ {headers:headers()});
 
  const ul=document.getElementById("logs");
  ul.innerHTML="";
+
  logs.forEach(l=>{
-  const li=document.createElement("li");
-  li.innerHTML=`
-   <strong>${new Date(l.log_time).toLocaleString()}</strong><br>
-   📍 ${l.place_name||"Resolving location..."}
-  `;
-  ul.appendChild(li);
+   const li=document.createElement("li");
+   li.innerHTML=`
+     <strong>${new Date(l.log_time).toLocaleString()}</strong><br>
+     📍 ${l.place_name||"Location unavailable"}
+   `;
+   ul.appendChild(li);
  });
+}
+
+// OFFLINE QUEUE
+function saveOffline(body){
+ let q=JSON.parse(localStorage.getItem("offline_logs")||"[]");
+ q.push(body);
+ localStorage.setItem("offline_logs",JSON.stringify(q));
+ alert("Saved offline. Will sync automatically.");
 }
 
 // CLOCK IN
 document.getElementById("clockBtn").onclick=()=>{
 
- if(!navigator.geolocation)
-  return showError("GPS not supported");
+navigator.geolocation.getCurrentPosition(async pos=>{
 
- navigator.geolocation.getCurrentPosition(async pos=>{
+ const emp=localStorage.getItem("session");
+ const body={
+   emp_id:emp,
+   log_time:new Date().toISOString(),
+   latitude:pos.coords.latitude,
+   longitude:pos.coords.longitude,
+   device_type:"MOBILE_WEB"
+ };
 
-  try{
-    const lat=pos.coords.latitude;
-    const lon=pos.coords.longitude;
+ if(!navigator.onLine){
+   saveOffline(body);
+   return;
+ }
 
-    let place="Location unavailable";
+ try{
+   await fetch(API+"/attendance_logs",{
+     method:"POST",
+     headers:headers(),
+     body:JSON.stringify(body)
+   });
+   loadLogs();
+ }catch(e){
+   saveOffline(body);
+ }
 
-    try{
-      const geo=await fetch(
-        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`
-      );
-      const g=await geo.json();
-      if(g.display_name) place=g.display_name;
-    }catch(e){}
+},()=>showError("GPS required"),
+{enableHighAccuracy:true,maximumAge:0,timeout:15000});
 
-    const emp=localStorage.getItem("session");
-
-    await safeFetch(API+"/attendance_logs",{
-      method:"POST",
-      headers:headers(),
-      body:JSON.stringify({
-        emp_id:emp,
-        log_time:new Date().toISOString(),
-        latitude:lat,
-        longitude:lon,
-        place_name:place,
-        device_type:"MOBILE_WEB"
-      })
-    });
-
-    loadLogs();
-
-  }catch(e){}
-
- },err=>showError("GPS Error",err.message),
- {enableHighAccuracy:true,timeout:15000});
 };
+
+// SYNC OFFLINE
+async function syncOffline(){
+ if(!navigator.onLine) return;
+
+ let q=JSON.parse(localStorage.getItem("offline_logs")||"[]");
+ if(!q.length) return;
+
+ for(const log of q){
+   try{
+     await fetch(API+"/attendance_logs",{
+       method:"POST",
+       headers:headers(),
+       body:JSON.stringify(log)
+     });
+   }catch(e){return;}
+ }
+
+ localStorage.removeItem("offline_logs");
+ loadLogs();
+}
+
+window.addEventListener("online",syncOffline);
 
 if(localStorage.getItem("session")) loadDashboard();
 
