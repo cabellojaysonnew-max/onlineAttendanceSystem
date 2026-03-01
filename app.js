@@ -1,24 +1,13 @@
 import bcrypt from "https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/+esm";
 import { supabase } from "./supabase.js";
 
-const VERSION="1.0.0";
-
-/* DEVICE ID */
-function getDeviceId(){
-let id=localStorage.getItem("dar_device_id");
-if(!id){
-id=crypto.randomUUID();
-localStorage.setItem("dar_device_id",id);
-}
-return id;
-}
+const APP_VERSION="DAR-1.0.0";
 
 /* SESSION */
 function saveSession(user){
 localStorage.setItem("dar_session",JSON.stringify({
 emp_id:user.emp_id,
-full_name:user.full_name,
-device:getDeviceId()
+full_name:user.full_name
 }));
 }
 
@@ -57,6 +46,7 @@ const {data}=await supabase.from("employees")
 if(!data){alert("Invalid ID");return;}
 
 let valid=false;
+
 if((data.pass||"").startsWith("$2"))
 valid=bcrypt.compareSync(pass,data.pass);
 else valid=(pass==="1111"||pass===data.pass);
@@ -67,31 +57,28 @@ saveSession(data);
 setTimeout(()=>location="dashboard.html",150);
 }
 
-/* DASHBOARD */
-async function initDashboard(session){
-
-document.getElementById("name").innerText=session.full_name;
-document.getElementById("empid").innerText=session.emp_id;
-
-document.getElementById("logoutBtn").onclick=()=>{
-localStorage.removeItem("dar_session");
-location="index.html";
-};
-
-document.getElementById("clockBtn").onclick=clockIn;
-
-loadHistory(session.emp_id);
-}
-
 /* STRICT GPS */
 function getFreshGPS(){
 return new Promise((resolve,reject)=>{
 navigator.geolocation.getCurrentPosition(
 p=>resolve(p),
-e=>reject(e),
-{enableHighAccuracy:true,timeout:15000,maximumAge:0}
+()=>reject(),
+{enableHighAccuracy:true,maximumAge:0,timeout:15000}
 );
 });
+}
+
+/* REVERSE GEOCODE */
+async function getPlace(lat,lon){
+try{
+const r=await fetch(
+`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
+);
+const d=await r.json();
+return d.display_name || "Location unavailable";
+}catch{
+return "Location unavailable";
+}
 }
 
 /* ONE LOGIN PER DAY */
@@ -123,12 +110,18 @@ alert("GPS required.");
 return;
 }
 
+const place=await getPlace(
+pos.coords.latitude,
+pos.coords.longitude
+);
+
 await supabase.from("attendance_logs").insert({
 emp_id:session.emp_id,
 device_id:"MOBILE_WEB",
 status:"IN",
 latitude:pos.coords.latitude,
 longitude:pos.coords.longitude,
+place_name:place,
 accuracy:pos.coords.accuracy
 });
 
@@ -136,7 +129,23 @@ alert("Attendance Recorded");
 loadHistory(session.emp_id);
 }
 
-/* SHOW LAST 20 MOBILE LOGS ONLY */
+/* DASHBOARD */
+async function initDashboard(session){
+
+document.getElementById("name").innerText=session.full_name;
+document.getElementById("empid").innerText=session.emp_id;
+
+document.getElementById("logoutBtn").onclick=()=>{
+localStorage.removeItem("dar_session");
+location="index.html";
+};
+
+document.getElementById("clockBtn").onclick=clockIn;
+
+loadHistory(session.emp_id);
+}
+
+/* SHOW LAST 20 MOBILE LOGS */
 async function loadHistory(emp){
 
 const {data}=await supabase.from("attendance_logs")
@@ -161,12 +170,12 @@ const d=new Date(r.log_time);
 box.innerHTML+=`
 <div style="border-bottom:1px solid #eee;padding:10px 0">
 <b>${d.toLocaleDateString()} ${d.toLocaleTimeString()}</b><br>
-📍 ${r.latitude}, ${r.longitude}
+📍 ${r.place_name || "Location unavailable"}
 </div>`;
 });
 }
 
-/* AUTO UPDATE ONLY WHEN VERSION CHANGES */
+/* AUTO UPDATE WHEN ONLINE */
 function registerSW(){
 if("serviceWorker" in navigator){
 navigator.serviceWorker.register("sw.js");

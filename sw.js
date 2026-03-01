@@ -1,8 +1,8 @@
-const CACHE="dar-v1";
+const CACHE="dar-final-v1";
 
 self.addEventListener("install",e=>{
 e.waitUntil(
-caches.open(CACHE).then(cache=>cache.addAll([
+caches.open(CACHE).then(c=>c.addAll([
 "./",
 "index.html",
 "dashboard.html",
