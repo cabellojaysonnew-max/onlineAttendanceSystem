@@ -1,40 +1,63 @@
 
-body {
+body{
 font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-background:#f2f4f3;
+background:#f4f6f5;
 margin:0;
-}
-.center {
 display:flex;
 justify-content:center;
-align-items:center;
-height:100vh;
 }
-.card {
+
+.card{
 background:white;
-margin:20px;
 padding:20px;
-border-radius:14px;
-box-shadow:0 4px 10px rgba(0,0,0,0.08);
+border-radius:18px;
+box-shadow:0 6px 20px rgba(0,0,0,.08);
+margin:15px;
+max-width:420px;
+width:90%;
 }
-.login-card { width:300px; text-align:center; }
-.logo { width:70px; display:block; margin:auto; }
-button {
-background:#1f6b2e;
-color:white;
-border:none;
-padding:12px;
-margin-top:10px;
+
+.logo{
+display:block;
+margin:auto;
+width:80px;
+}
+
+h1{
+text-align:center;
+color:#1f6b2e;
+margin:10px 0 0;
+}
+
+.subtitle{
+text-align:center;
+color:#c7a329;
+margin-bottom:20px;
+}
+
+input{
 width:100%;
+padding:12px;
 border-radius:10px;
+border:1px solid #ddd;
+margin-top:10px;
 font-size:16px;
 }
-button:nth-child(2){background:#c8a23a;}
-input {
+
+button{
 width:100%;
-padding:10px;
-margin-top:10px;
-border-radius:8px;
-border:1px solid #ccc;
+padding:14px;
+margin-top:12px;
+border:none;
+border-radius:12px;
+font-size:17px;
+color:white;
+background:#1f6b2e;
 }
-.error { color:red; font-size:13px;}
+
+.gold{ background:#c7a329; }
+
+.log{
+border-top:1px solid #eee;
+padding:10px 0;
+}

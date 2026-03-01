@@ -1,153 +1,148 @@
 
-const SUPABASE_URL = "https://ytfpiyfapvybihlngxks.supabase.co";
-const SUPABASE_KEY = "sb_publishable_poSZUQ9HI4wcY9poEo5b1w_Z-pAJbKo";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const SUPABASE_URL="YOUR_SUPABASE_URL";
+const SUPABASE_KEY="YOUR_SUPABASE_KEY";
 
-// ---------- DEVICE ----------
-function getDeviceId(){
- let id = localStorage.getItem("device_id");
- if(!id){
-   id="DARMO-"+crypto.randomUUID();
-   localStorage.setItem("device_id",id);
- }
- return id;
+const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const app=document.getElementById("app");
+
+function deviceID(){
+let id=localStorage.device_id;
+if(!id){
+id="DAR-"+crypto.randomUUID();
+localStorage.device_id=id;
+}
+return id;
 }
 
-// ---------- OFFLINE DB ----------
-function openDB(){
- return new Promise((resolve)=>{
-   const req=indexedDB.open("DAR_OFFLINE_DB",1);
-   req.onupgradeneeded=e=>{
-     e.target.result.createObjectStore("logs",{autoIncrement:true});
-   };
-   req.onsuccess=e=>resolve(e.target.result);
- });
+let user=JSON.parse(localStorage.user||"null");
+
+if(user) dashboard();
+else loginUI();
+
+function loginUI(){
+app.innerHTML=`
+<div class="card">
+<img src="dar_logo.png" class="logo">
+<h1>DAR CAMARINES SUR 1</h1>
+<div class="subtitle">Field Attendance Monitoring System</div>
+<input id="emp" placeholder="Employee ID">
+<input id="pass" type="password" placeholder="Password">
+<button onclick="login()">Login</button>
+<div id="msg"></div>
+</div>`;
 }
 
-async function saveOffline(log){
- const db=await openDB();
- const tx=db.transaction("logs","readwrite");
- tx.objectStore("logs").add(log);
-}
-
-async function syncOfflineLogs(){
- if(!navigator.onLine) return;
- const db=await openDB();
- const tx=db.transaction("logs","readwrite");
- const store=tx.objectStore("logs");
-
- store.openCursor().onsuccess=async e=>{
-   const cursor=e.target.result;
-   if(cursor){
-     await supabase.from("attendance_logs").insert(cursor.value);
-     store.delete(cursor.key);
-     cursor.continue();
-   }
- };
-}
-
-window.addEventListener("online",syncOfflineLogs);
-
-// ---------- LOGIN ----------
 async function login(){
- document.getElementById("error").innerText="";
- const emp=document.getElementById("empId").value.trim();
- const pass=document.getElementById("password").value;
+try{
+const emp=document.getElementById("emp").value.trim();
+const pass=document.getElementById("pass").value.trim();
 
- const res = await supabase.rpc("verify_password",{
-   emp_input:emp,
-   pass_input:pass
- });
+const {data,error}=await db
+.from("employees")
+.select("*")
+.eq("emp_id",emp)
+.single();
 
- if(res.error || !res.data){
-   showError("Invalid login");
-   return;
- }
+if(error || !data) throw Error("User not found");
+if(data.pass!==pass) throw Error("Invalid password");
 
- localStorage.setItem("session_emp",emp);
- showDashboard(emp);
+if(!data.mobile_device_id){
+await db.from("employees")
+.update({mobile_device_id:deviceID()})
+.eq("emp_id",emp);
+}else if(data.mobile_device_id!==deviceID()){
+throw Error("Registered to another mobile device");
 }
 
-function showDashboard(emp){
- document.getElementById("loginCard").classList.add("hidden");
- document.getElementById("dashboard").classList.remove("hidden");
- document.getElementById("welcome").innerText="Welcome "+emp;
- loadLogs();
+localStorage.user=JSON.stringify(data);
+user=data;
+
+dashboard();
+
+}catch(e){
+msg.innerText=e.message;
+msg.style.color="red";
+}
 }
 
+function dashboard(){
+app.innerHTML=`
+<div class="card">
+<img src="dar_logo.png" class="logo">
+<h1>Field Attendance</h1>
+<button onclick="clock('IN')">Clock In</button>
+<button class="gold" onclick="clock('OUT')">Clock Out</button>
+<h3>Last 20 Mobile Logs</h3>
+<div id="logs"></div>
+</div>`;
 
-// ---------- CLOCK IN ----------
-async function clockIn(){
- const emp=localStorage.getItem("session_emp");
- const device=getDeviceId();
-
- navigator.geolocation.getCurrentPosition(async pos=>{
-
-   const payload={
-     emp_id:emp,
-     log_time:new Date().toISOString(),
-     device_id:device,
-     device_type:"MOBILE_WEB",
-     latitude:pos.coords.latitude,
-     longitude:pos.coords.longitude
-   };
-
-   if(navigator.onLine){
-     const {error}=await supabase
-       .from("attendance_logs")
-       .insert(payload);
-
-     if(error){
-       await saveOffline(payload);
-       alert("Saved offline (connection issue)");
-     }else{
-       alert("Attendance saved");
-     }
-   }else{
-     await saveOffline(payload);
-     alert("Offline saved ✔");
-   }
-
-   loadLogs();
-
- },()=>showError("GPS permission denied"),{enableHighAccuracy:true});
+loadLogs();
 }
 
-// ---------- FETCH ----------
 async function loadLogs(){
- const emp=localStorage.getItem("session_emp");
+const {data}=await db
+.from("attendance_logs")
+.select("*")
+.eq("emp_id",user.emp_id)
+.eq("device_type","MOBILE_WEB")
+.order("log_time",{ascending:false})
+.limit(20);
 
- const {data,error}=await supabase
-   .from("attendance_logs")
-   .select("*")
-   .eq("emp_id",emp)
-   .eq("device_type","MOBILE_WEB")
-   .order("log_time",{ascending:false})
-   .limit(20);
-
- if(error){ showError(error.message); return; }
-
- const ul=document.getElementById("logs");
- ul.innerHTML="";
- data.forEach(r=>{
-   const li=document.createElement("li");
-   li.innerText=new Date(r.log_time).toLocaleString();
-   ul.appendChild(li);
- });
+logs.innerHTML=data.map(l=>`
+<div class="log">
+<b>${new Date(l.log_time).toLocaleString()}</b><br>
+📍 ${l.place_name || "Unknown"}
+</div>`).join("");
 }
 
-// ---------- SESSION ----------
-const session=localStorage.getItem("session_emp");
-if(session){
- showDashboard(session);
+async function clock(type){
+
+if(!navigator.geolocation){
+alert("GPS not supported");
+return;
 }
 
-// ---------- LOGOUT ----------
-function logout(){
- localStorage.removeItem("session_emp");
- location.reload();
+navigator.geolocation.getCurrentPosition(async pos=>{
+
+try{
+
+const lat=pos.coords.latitude;
+const lng=pos.coords.longitude;
+const acc=pos.coords.accuracy;
+
+if(acc>50) throw Error("GPS accuracy too low");
+
+const geo=await fetch(
+`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+);
+
+const g=await geo.json();
+
+const {error}=await db
+.from("attendance_logs")
+.insert({
+emp_id:user.emp_id,
+status:type,
+device_id:deviceID(),
+latitude:lat,
+longitude:lng,
+accuracy:acc,
+place_name:g.display_name,
+device_type:"MOBILE_WEB"
+});
+
+if(error) throw error;
+
+alert("Attendance saved");
+loadLogs();
+
+}catch(e){
+alert("ERROR: "+e.message);
 }
 
-function showError(msg){
- document.getElementById("error").innerText=msg;
+},{
+enableHighAccuracy:true,
+maximumAge:0,
+timeout:15000
+});
 }
