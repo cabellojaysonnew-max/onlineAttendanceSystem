@@ -64,7 +64,6 @@ async function clockIn(){
  btn.disabled=true;
 
  try{
-
  const today=new Date().toISOString().split("T")[0];
 
  const check=await fetch(
