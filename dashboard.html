@@ -1,28 +1,30 @@
+
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Dashboard</title>
 <link rel="stylesheet" href="style.css">
-<script defer src="dashboard.js"></script>
 </head>
 <body>
+<div class="header">
+<img src="dar_logo.png" class="logo"/>
+<h2>DAR Field Attendance</h2>
+</div>
 
-<div class="app">
 <div class="card">
-<h3 id="name"></h3>
-<p id="empid"></p>
-
-<button id="clockBtn">Clock In</button>
-<button onclick="logout()">Logout</button>
-
-<h4>Recent Attendance</h4>
-<div id="history"></div>
-
-<div id="errorBox"></div>
-</div>
+<button id="clockIn">Clock In</button>
+<button id="clockOut">Clock Out</button>
+<p id="status"></p>
 </div>
 
+<div class="card">
+<h3>Today's Logs</h3>
+<ul id="logs"></ul>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+<script src="app.js"></script>
 </body>
 </html>

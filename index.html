@@ -2,40 +2,25 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>DAR Field Attendance</title>
-<link rel="stylesheet" href="styles.css">
-<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="style.css">
 </head>
-<body>
-
-<div class="app">
-
-<div id="loginCard" class="card">
-<img src="dar_logo.png" class="logo">
-<h1>DAR CAMARINES SUR 1</h1>
+<body class="center">
+<div class="card login-card">
+<img src="dar_logo.png" class="logo"/>
+<h2>DAR CAMARINES SUR 1</h2>
 <p class="subtitle">Field Attendance Monitoring System</p>
 
-<input id="empId" placeholder="Employee ID">
-<input id="password" type="password" placeholder="Password">
+<input id="emp" placeholder="Employee ID">
+<input id="pass" type="password" placeholder="Password">
+
 <button id="loginBtn">Login</button>
+<p id="error" class="error"></p>
 </div>
 
-<div id="dashboard" class="hidden">
-<header>
-<img src="dar_logo.png" class="logo-small">
-<h2>DAR Field Attendance</h2>
-</header>
-
-<button id="clockBtn" class="primary">Clock In</button>
-
-<h3>Last 20 Mobile Logs</h3>
-<ul id="logs"></ul>
-</div>
-
-</div>
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

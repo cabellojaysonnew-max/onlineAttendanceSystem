@@ -1,168 +1,119 @@
 
-const API="https://ytfpiyfapvybihlngxks.supabase.co/rest/v1";
-const KEY="sb_publishable_poSZUQ9HI4wcY9poEo5b1w_Z-pAJbKo";
+const deviceId = localStorage.getItem("device_id") ||
+("DARMO-"+Math.random().toString(36).substring(2,10));
+localStorage.setItem("device_id",deviceId);
 
-function headers(){
- return {
-  "apikey":KEY,
-  "Authorization":"Bearer "+KEY,
-  "Content-Type":"application/json"
- };
+async function login(){
+const emp=document.getElementById("emp").value.trim();
+const pass=document.getElementById("pass").value.trim();
+
+const {data,error}=await supabaseClient
+.from("employees")
+.select("*")
+.eq("emp_id",emp)
+.single();
+
+if(error||!data){
+document.getElementById("error").innerText="User not found";
+return;
 }
 
-function showError(msg){
- alert("⚠️ "+msg);
+// default password OR bcrypt hash already stored
+if(data.pass==="1111" && pass==="1111"){
+sessionStorage.setItem("emp",emp);
+await registerDevice(data);
+location="dashboard.html";
+return;
 }
 
-async function safeFetch(url,opt={}){
- const r=await fetch(url,opt);
- if(!r.ok){
-   const t=await r.text();
-   throw new Error(t);
- }
- return await r.json();
+document.getElementById("error").innerText="Invalid password";
 }
 
-// DEVICE ID
-function getDeviceId(emp){
- let id=localStorage.getItem("device_id");
- if(!id){
-   id="DARMO-"+emp+"-"+Math.random().toString(36).substring(2,10);
-   localStorage.setItem("device_id",id);
- }
- return id;
+async function registerDevice(user){
+if(!user.mobile_device_id){
+await supabaseClient
+.from("employees")
+.update({mobile_device_id:deviceId})
+.eq("emp_id",user.emp_id);
+}else if(user.mobile_device_id!==deviceId){
+document.getElementById("error").innerText=
+"Device registered to another phone.";
+throw "device mismatch";
+}
 }
 
-// LOGIN
-document.getElementById("loginBtn").onclick=async()=>{
- try{
- const emp=document.getElementById("empId").value.trim();
- const pass=document.getElementById("password").value.trim();
-
- const users=await safeFetch(API+"/employees?emp_id=eq."+emp,{headers:headers()});
- if(!users.length) return showError("User not found");
-
- const user=users[0];
-
- if(!(pass==="1111" || user.pass.startsWith("$2")))
-   return showError("Invalid password");
-
- const deviceId=getDeviceId(emp);
-
- // register first device
- if(!user.mobile_device_id){
-   await fetch(API+"/employees?emp_id=eq."+emp,{
-     method:"PATCH",
-     headers:headers(),
-     body:JSON.stringify({mobile_device_id:deviceId})
-   });
- }else if(user.mobile_device_id!==deviceId){
-   return showError("Account registered to another mobile device");
- }
-
- localStorage.setItem("session",emp);
- loadDashboard();
-
- }catch(e){showError(e.message)}
-};
-
-// DASHBOARD
-function loadDashboard(){
- document.getElementById("loginCard").classList.add("hidden");
- document.getElementById("dashboard").classList.remove("hidden");
- loadLogs();
- syncOffline();
+if(document.getElementById("loginBtn")){
+document.getElementById("loginBtn").onclick=login;
 }
 
-// LOAD MOBILE LOGS ONLY
+async function getGPS(){
+return new Promise((res,rej)=>{
+navigator.geolocation.getCurrentPosition(res,rej,
+{enableHighAccuracy:true,timeout:15000});
+});
+}
+
+async function clock(type){
+try{
+const emp=sessionStorage.getItem("emp");
+if(!emp){location="index.html";return;}
+
+const gps=await getGPS();
+const lat=gps.coords.latitude;
+const lng=gps.coords.longitude;
+
+const today=new Date().toISOString().slice(0,10);
+
+const {data:logs}=await supabaseClient
+.from("attendance_logs")
+.select("*")
+.eq("emp_id",emp)
+.gte("log_time",today);
+
+if(logs && logs.length>=4){
+alert("Maximum 4 entries per day reached.");
+return;
+}
+
+await supabaseClient.from("attendance_logs").insert({
+emp_id:emp,
+log_time:new Date().toISOString(),
+device_type:"FIELD",
+device_id:deviceId,
+latitude:lat,
+longitude:lng,
+place_name:"Auto GPS"
+});
+
+alert(type+" saved");
+loadLogs();
+
+}catch(e){
+alert("ERROR: "+e);
+}
+}
+
+if(document.getElementById("clockIn")){
+document.getElementById("clockIn").onclick=()=>clock("IN");
+document.getElementById("clockOut").onclick=()=>clock("OUT");
+loadLogs();
+}
+
 async function loadLogs(){
- const emp=localStorage.getItem("session");
+const emp=sessionStorage.getItem("emp");
+const {data}=await supabaseClient
+.from("attendance_logs")
+.select("*")
+.eq("emp_id",emp)
+.order("log_time",{ascending:false})
+.limit(20);
 
- const logs=await safeFetch(
- API+`/attendance_logs?emp_id=eq.${emp}&device_type=eq.MOBILE_WEB&order=log_time.desc&limit=20`,
- {headers:headers()});
-
- const ul=document.getElementById("logs");
- ul.innerHTML="";
-
- logs.forEach(l=>{
-   const li=document.createElement("li");
-   li.innerHTML=`
-     <strong>${new Date(l.log_time).toLocaleString()}</strong><br>
-     📍 ${l.place_name||"Location unavailable"}
-   `;
-   ul.appendChild(li);
- });
-}
-
-// OFFLINE QUEUE
-function saveOffline(body){
- let q=JSON.parse(localStorage.getItem("offline_logs")||"[]");
- q.push(body);
- localStorage.setItem("offline_logs",JSON.stringify(q));
- alert("Saved offline. Will sync automatically.");
-}
-
-// CLOCK IN
-document.getElementById("clockBtn").onclick=()=>{
-
-navigator.geolocation.getCurrentPosition(async pos=>{
-
- const emp=localStorage.getItem("session");
- const body={
-   emp_id:emp,
-   log_time:new Date().toISOString(),
-   latitude:pos.coords.latitude,
-   longitude:pos.coords.longitude,
-   device_type:"MOBILE_WEB"
- };
-
- if(!navigator.onLine){
-   saveOffline(body);
-   return;
- }
-
- try{
-   await fetch(API+"/attendance_logs",{
-     method:"POST",
-     headers:headers(),
-     body:JSON.stringify(body)
-   });
-   loadLogs();
- }catch(e){
-   saveOffline(body);
- }
-
-},()=>showError("GPS required"),
-{enableHighAccuracy:true,maximumAge:0,timeout:15000});
-
-};
-
-// SYNC OFFLINE
-async function syncOffline(){
- if(!navigator.onLine) return;
-
- let q=JSON.parse(localStorage.getItem("offline_logs")||"[]");
- if(!q.length) return;
-
- for(const log of q){
-   try{
-     await fetch(API+"/attendance_logs",{
-       method:"POST",
-       headers:headers(),
-       body:JSON.stringify(log)
-     });
-   }catch(e){return;}
- }
-
- localStorage.removeItem("offline_logs");
- loadLogs();
-}
-
-window.addEventListener("online",syncOffline);
-
-if(localStorage.getItem("session")) loadDashboard();
-
-if('serviceWorker' in navigator){
- navigator.serviceWorker.register('sw.js');
+const ul=document.getElementById("logs");
+if(!ul)return;
+ul.innerHTML="";
+(data||[]).forEach(l=>{
+const li=document.createElement("li");
+li.innerText=new Date(l.log_time).toLocaleString()+" - "+(l.place_name||"Unknown");
+ul.appendChild(li);
+});
 }
