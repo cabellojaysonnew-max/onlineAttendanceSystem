@@ -11,39 +11,30 @@ function headers(){
 }
 
 function showError(msg){
- const box=document.getElementById("errorBox");
- box.innerText="⚠️ "+msg;
- box.classList.remove("hidden");
- setTimeout(()=>box.classList.add("hidden"),5000);
+ alert("⚠️ "+msg);
 }
 
 async function safeFetch(url,opt={}){
  const r=await fetch(url,opt);
  if(!r.ok){
    const t=await r.text();
-   showError(t);
    throw new Error(t);
  }
  return await r.json();
 }
 
-function isMobile(){
- return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-}
-
-/* STABLE DEVICE ID */
+// DEVICE ID
 function getDeviceId(emp){
  let id=localStorage.getItem("device_id");
  if(!id){
-   id="DAR-"+emp+"-"+crypto.randomUUID();
+   id="DARMO-"+emp+"-"+Math.random().toString(36).substring(2,10);
    localStorage.setItem("device_id",id);
  }
  return id;
 }
 
-/* LOGIN */
+// LOGIN
 document.getElementById("loginBtn").onclick=async()=>{
-
  try{
  const emp=document.getElementById("empId").value.trim();
  const pass=document.getElementById("password").value.trim();
@@ -58,101 +49,72 @@ document.getElementById("loginBtn").onclick=async()=>{
 
  const deviceId=getDeviceId(emp);
 
- /* REGISTER FIRST DEVICE */
+ // register first device
  if(!user.mobile_device_id){
    await fetch(API+"/employees?emp_id=eq."+emp,{
      method:"PATCH",
      headers:headers(),
      body:JSON.stringify({mobile_device_id:deviceId})
    });
- }
- else if(user.mobile_device_id!==deviceId){
-   return showError("Account already registered to another mobile device.");
+ }else if(user.mobile_device_id!==deviceId){
+   return showError("Account registered to another mobile device");
  }
 
  localStorage.setItem("session",emp);
  loadDashboard();
 
- }catch(e){}
+ }catch(e){showError(e.message)}
 };
 
-/* DASHBOARD */
+// DASHBOARD
 function loadDashboard(){
  document.getElementById("loginCard").classList.add("hidden");
  document.getElementById("dashboard").classList.remove("hidden");
-
- if(!isMobile()){
-   document.getElementById("clockInBtn").disabled=true;
-   document.getElementById("clockOutBtn").disabled=true;
-   showError("View‑only mode on desktop/laptop.");
- }
-
  loadLogs();
  syncOffline();
 }
 
-/* LOAD LOGS */
+// LOAD MOBILE LOGS ONLY
 async function loadLogs(){
  const emp=localStorage.getItem("session");
 
  const logs=await safeFetch(
  API+`/attendance_logs?emp_id=eq.${emp}&device_type=eq.MOBILE_WEB&order=log_time.desc&limit=20`,
- {headers:headers()}
- );
-
- const grouped={};
-
- logs.forEach(l=>{
-   const day=l.log_time.split("T")[0];
-   if(!grouped[day]) grouped[day]={};
-   if(l.log_type==="IN") grouped[day].in=l;
-   if(l.log_type==="OUT") grouped[day].out=l;
- });
+ {headers:headers()});
 
  const ul=document.getElementById("logs");
  ul.innerHTML="";
 
- Object.keys(grouped).forEach(day=>{
-   const rec=grouped[day];
+ logs.forEach(l=>{
    const li=document.createElement("li");
-
-   let html="";
-   if(rec.in){
-     html+=`🟢 IN: ${new Date(rec.in.log_time).toLocaleString()}<br>
-     📍 ${rec.in.place_name||"Location unavailable"}<br>`;
-   }
-   if(rec.out){
-     html+=`🔴 OUT: ${new Date(rec.out.log_time).toLocaleString()}<br>
-     📍 ${rec.out.place_name||"Location unavailable"}`;
-   }
-
-   li.innerHTML=html;
+   li.innerHTML=`
+     <strong>${new Date(l.log_time).toLocaleString()}</strong><br>
+     📍 ${l.place_name||"Location unavailable"}
+   `;
    ul.appendChild(li);
  });
 }
 
-/* OFFLINE CACHE */
+// OFFLINE QUEUE
 function saveOffline(body){
- let q = JSON.parse(localStorage.getItem("offline_logs") || "[]");
+ let q=JSON.parse(localStorage.getItem("offline_logs")||"[]");
  q.push(body);
  localStorage.setItem("offline_logs",JSON.stringify(q));
- showError("Saved offline. Will sync automatically.");
+ alert("Saved offline. Will sync automatically.");
 }
 
-/* CLOCK */
-function clock(type){
+// CLOCK IN
+document.getElementById("clockBtn").onclick=()=>{
 
 navigator.geolocation.getCurrentPosition(async pos=>{
 
  const emp=localStorage.getItem("session");
-
  const body={
    emp_id:emp,
    log_time:new Date().toISOString(),
    latitude:pos.coords.latitude,
    longitude:pos.coords.longitude,
-   device_type:"MOBILE_WEB",
-   log_type:type
+   device_type:"MOBILE_WEB"
  };
 
  if(!navigator.onLine){
@@ -171,18 +133,16 @@ navigator.geolocation.getCurrentPosition(async pos=>{
    saveOffline(body);
  }
 
-},err=>showError(err.message),
+},()=>showError("GPS required"),
 {enableHighAccuracy:true,maximumAge:0,timeout:15000});
-}
 
-document.getElementById("clockInBtn").onclick=()=>clock("IN");
-document.getElementById("clockOutBtn").onclick=()=>clock("OUT");
+};
 
-/* SYNC OFFLINE */
+// SYNC OFFLINE
 async function syncOffline(){
  if(!navigator.onLine) return;
 
- let q = JSON.parse(localStorage.getItem("offline_logs") || "[]");
+ let q=JSON.parse(localStorage.getItem("offline_logs")||"[]");
  if(!q.length) return;
 
  for(const log of q){
@@ -202,3 +162,7 @@ async function syncOffline(){
 window.addEventListener("online",syncOffline);
 
 if(localStorage.getItem("session")) loadDashboard();
+
+if('serviceWorker' in navigator){
+ navigator.serviceWorker.register('sw.js');
+}
