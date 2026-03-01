@@ -1,17 +1,19 @@
-
 <!DOCTYPE html>
 <html>
-<head>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>DAR Field Attendance</title>
+<body style="font-family:Arial;text-align:center;margin-top:50px">
 
-<link rel="stylesheet" href="style.css">
-<link rel="manifest" href="manifest.json">
-</head>
+<h1>DAR TEST PAGE</h1>
 
-<body>
-<div id="app"></div>
+<button onclick="test()">Click Me</button>
 
-<script type="module" src="app.js"></script>
+<p id="result"></p>
+
+<script>
+function test(){
+ document.getElementById("result").innerText =
+ "JavaScript is running correctly ✅";
+}
+</script>
+
 </body>
 </html>
