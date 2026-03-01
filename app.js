@@ -27,10 +27,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+/* LOGIN WITH DUAL PASSWORD SUPPORT */
 async function login(){
 
   const emp=document.getElementById("emp").value.trim();
-  const pass=document.getElementById("pass").value;
+  const pass=document.getElementById("pass").value.trim();
 
   const { data,error }=await supabase
     .from("employees")
@@ -40,8 +41,19 @@ async function login(){
 
   if(error||!data){ alert("Invalid Employee ID"); return; }
 
-  const valid=bcrypt.compareSync(pass,data.pass);
-  if(!valid){ alert("Invalid Password"); return; }
+  const storedPass = (data.pass || "").trim();
+  let valid = false;
+
+  if(storedPass.startsWith("$2")){
+      valid = bcrypt.compareSync(pass, storedPass);
+  } else {
+      valid = pass === storedPass; // default password 1111
+  }
+
+  if(!valid){
+      alert("Invalid Password");
+      return;
+  }
 
   const deviceId=getDeviceId();
 

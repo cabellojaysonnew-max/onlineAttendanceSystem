@@ -1,4 +1,4 @@
-const CACHE_NAME = "dar-attendance-v4";
+const CACHE_NAME = "dar-attendance-v6";
 
 const urlsToCache = [
   "index.html",
