@@ -1,29 +1,39 @@
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>DAR Field Attendance</title>
-
-<link rel="stylesheet" href="style.css">
-
-<script src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/dist/bcrypt.min.js"></script>
-<script defer src="app.js"></script>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
-<div class="app">
-  <div class="card">
-    <img src="logo_dar.png" class="logo">
-    <h2>DAR CAMARINES SUR 1</h2>
+
+<div id="app">
+  <div class="login-card" id="loginView">
+    <img src="logo.png" class="logo"/>
+    <h1>DAR CAMARINES SUR 1</h1>
     <p class="subtitle">Field Attendance Monitoring System</p>
 
-    <input id="emp" placeholder="Employee ID">
-    <input id="pass" type="password" placeholder="Password">
-
+    <input id="empId" placeholder="Employee ID"/>
+    <input id="password" type="password" placeholder="Password"/>
     <button id="loginBtn">Login</button>
-    <div id="errorBox"></div>
+    <p id="loginError" class="error"></p>
+  </div>
+
+  <div id="dashboard" class="hidden">
+    <header>
+      <img src="logo.png" class="logo-small"/>
+      <h2>DAR Field Attendance</h2>
+    </header>
+
+    <button id="clockBtn">Clock In</button>
+    <h3>Last 20 Mobile Logs</h3>
+    <ul id="logs"></ul>
   </div>
 </div>
+
+<script src="app.js"></script>
 </body>
 </html>
