@@ -1,34 +1,34 @@
-
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DAR Dashboard</title>
+<title>Dashboard</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="app">
-<img src="logo_dar.png" class="logo small">
 
-<div class="card">
-<h3 id="name"></h3>
-<p id="empid"></p>
+<div class="header">
+<img src="logo_dar.png" class="logo-small">
+<h2>DAR Field Attendance</h2>
 </div>
 
 <div class="card">
+<h3 id="empName"></h3>
+<p id="empId"></p>
+</div>
+
+<div class="card">
+<h4>Today's Status</h4>
 <button id="clockBtn" onclick="clockIn()">Clock In</button>
-<button class="gold" onclick="logout()">Logout</button>
 <p id="status"></p>
 </div>
 
 <div class="card">
-<h3>Attendance History</h3>
+<h4>Recent History</h4>
 <div id="history"></div>
 </div>
-</div>
 
-<script src="bcrypt.min.js"></script>
 <script src="app.js"></script>
+<script>loadDashboard()</script>
 </body>
 </html>

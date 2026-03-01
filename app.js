@@ -1,136 +1,126 @@
-
 const SUPABASE_URL="https://ytfpiyfapvybihlngxks.supabase.co/rest/v1";
 const API_KEY="sb_publishable_poSZUQ9HI4wcY9poEo5b1w_Z-pAJbKo";
 
-const headers={apikey:API_KEY,"Content-Type":"application/json"};
+const headers={
+apikey:API_KEY,
+"Content-Type":"application/json"
+};
 
-function getDeviceId(){
- let id=localStorage.getItem("dar_device_id");
- if(!id){
-   id=crypto.randomUUID();
-   localStorage.setItem("dar_device_id",id);
- }
- return id;
+function showError(msg){
+document.getElementById("error").innerText=msg;
 }
 
 async function login(){
- try{
- const emp=document.getElementById("emp").value.trim();
- const pass=document.getElementById("pass").value.trim();
 
- const res=await fetch(`${SUPABASE_URL}/employees?emp_id=eq.${emp}`,{headers});
- const data=await res.json();
+const emp=document.getElementById("emp").value.trim();
+const pass=document.getElementById("pass").value;
 
- if(!data.length) throw "Employee not found";
+const res=await fetch(`${SUPABASE_URL}/employees?emp_id=eq.${emp}`,{headers});
+const data=await res.json();
 
- const user=data[0];
+if(!data.length){showError("Employee not found");return;}
 
- if(!bcrypt.compareSync(pass,user.pass))
-   throw "Invalid password";
+const user=data[0];
 
- const deviceId=getDeviceId();
+let valid=false;
 
- if(user.mobile_device_id && user.mobile_device_id!==deviceId)
-   throw "Registered to another device";
-
- if(!user.mobile_device_id){
-   await fetch(`${SUPABASE_URL}/employees?emp_id=eq.${emp}`,{
-     method:"PATCH",
-     headers,
-     body:JSON.stringify({mobile_device_id:deviceId})
-   });
- }
-
- localStorage.setItem("session_emp",emp);
- localStorage.setItem("session_name",user.full_name);
-
- location.href="dashboard.html";
-
- }catch(e){
- document.getElementById("error").innerText=e;
- }
+if(user.pass.startsWith("$2")){
+valid=bcrypt.compareSync(pass,user.pass);
+}else{
+valid=(pass===user.pass);
 }
 
-function logout(){
- localStorage.clear();
- location.href="index.html";
+if(!valid){showError("Invalid password");return;}
+
+localStorage.setItem("session_emp",user.emp_id);
+localStorage.setItem("session_name",user.full_name);
+
+location.href="dashboard.html";
+}
+
+async function loadDashboard(){
+
+const emp=localStorage.getItem("session_emp");
+if(!emp){location.href="index.html";return;}
+
+document.getElementById("empName").innerText=localStorage.getItem("session_name");
+document.getElementById("empId").innerText=emp;
+
+loadHistory(emp);
+checkToday(emp);
+}
+
+async function checkToday(emp){
+
+const today=new Date().toISOString().split("T")[0];
+
+const res=await fetch(
+`${SUPABASE_URL}/attendance_logs?emp_id=eq.${emp}&log_time=gte.${today}T00:00:00`,
+{headers}
+);
+
+const data=await res.json();
+
+if(data.length){
+document.getElementById("status").innerText="Already Clocked In";
+document.getElementById("clockBtn").disabled=true;
+}
+}
+
+function getGPS(){
+return new Promise((resolve,reject)=>{
+navigator.geolocation.getCurrentPosition(
+pos=>resolve(pos.coords),
+err=>reject(err),
+{enableHighAccuracy:true,timeout:15000}
+);
+});
 }
 
 async function clockIn(){
- const emp=localStorage.getItem("session_emp");
- if(!emp) return;
 
- const btn=document.getElementById("clockBtn");
- btn.disabled=true;
+const emp=localStorage.getItem("session_emp");
 
- try{
- const today=new Date().toISOString().split("T")[0];
+try{
 
- const check=await fetch(
- `${SUPABASE_URL}/attendance_logs?emp_id=eq.${emp}&device_id=eq.MOBILE_WEB&log_time=gte.${today}T00:00:00`,
- {headers});
+const gps=await getGPS();
 
- const exist=await check.json();
- if(exist.length>0) throw "Already clocked in today";
+await fetch(`${SUPABASE_URL}/attendance_logs`,{
+method:"POST",
+headers:{...headers,Prefer:"return=minimal"},
+body:JSON.stringify({
+emp_id:emp,
+log_time:new Date().toISOString(),
+device_id:"MOBILE_WEB",
+latitude:gps.latitude,
+longitude:gps.longitude,
+status:"IN"
+})
+});
 
- const pos=await new Promise((res,rej)=>{
- navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:true});
- });
+alert("Attendance Recorded");
+location.reload();
 
- const payload={
-   emp_id:emp,
-   device_id:"MOBILE_WEB",
-   status:"IN",
-   log_time:new Date().toISOString(),
-   latitude:pos.coords.latitude,
-   longitude:pos.coords.longitude
- };
-
- const save=await fetch(`${SUPABASE_URL}/attendance_logs`,{
-   method:"POST",
-   headers:{...headers,Prefer:"return=minimal"},
-   body:JSON.stringify(payload)
- });
-
- if(!save.ok) throw "Database save failed";
-
- document.getElementById("status").innerText="Attendance recorded";
- loadHistory();
-
- }catch(e){
- document.getElementById("status").innerText=e;
- }
-
- btn.disabled=false;
+}catch(e){
+alert("GPS or save failed");
+}
 }
 
-async function loadHistory(){
- const emp=localStorage.getItem("session_emp");
- if(!emp) return;
+async function loadHistory(emp){
 
- const res=await fetch(
- `${SUPABASE_URL}/attendance_logs?emp_id=eq.${emp}&device_id=eq.MOBILE_WEB&order=log_time.desc&limit=20`,
- {headers});
+const res=await fetch(
+`${SUPABASE_URL}/attendance_logs?emp_id=eq.${emp}&device_id=eq.MOBILE_WEB&order=log_time.desc&limit=20`,
+{headers}
+);
 
- const logs=await res.json();
+const data=await res.json();
 
- const div=document.getElementById("history");
- if(!div) return;
+const div=document.getElementById("history");
+div.innerHTML="";
 
- div.innerHTML=logs.map(l=>`
- <div style="text-align:left;padding:8px 0;border-bottom:1px solid #eee">
- <b>${new Date(l.log_time).toLocaleString()}</b>
- </div>`).join("");
-}
-
-if(location.pathname.includes("dashboard")){
- const emp=localStorage.getItem("session_emp");
- if(!emp) location.href="index.html";
- else{
-   document.addEventListener("DOMContentLoaded",()=>{
-     document.getElementById("name").innerText=localStorage.getItem("session_name");
-     document.getElementById("empid").innerText=emp;
-     loadHistory();
-   });
- }
+data.forEach(r=>{
+div.innerHTML+=`
+<p><b>${new Date(r.log_time).toLocaleString()}</b><br>
+📍 ${r.address||"Location recorded"}</p><hr>`;
+});
 }
