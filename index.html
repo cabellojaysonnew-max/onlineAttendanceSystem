@@ -1,19 +1,38 @@
 <!DOCTYPE html>
-<html>
-<body style="font-family:Arial;text-align:center;margin-top:50px">
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DAR Field Attendance</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="manifest" href="manifest.json">
+</head>
+<body>
 
-<h1>DAR TEST PAGE</h1>
+<div id="app">
+  <div class="login-card" id="loginView">
+    <img src="dar_logo.png" class="logo">
+    <h1>DAR CAMARINES SUR 1</h1>
+    <p class="subtitle">Field Attendance Monitoring System</p>
 
-<button onclick="test()">Click Me</button>
+    <input id="empId" placeholder="Employee ID">
+    <input id="password" type="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <p id="loginError" class="error"></p>
+  </div>
 
-<p id="result"></p>
+  <div id="dashboard" class="hidden">
+    <img src="dar_logo.png" class="logo small">
+    <h2 id="welcome"></h2>
 
-<script>
-function test(){
- document.getElementById("result").innerText =
- "JavaScript is running correctly ✅";
-}
-</script>
+    <button id="clockBtn" onclick="clockIn()">Clock In</button>
+    <button onclick="logout()">Logout</button>
 
+    <h3>Last 20 Mobile Logs</h3>
+    <ul id="logs"></ul>
+  </div>
+</div>
+
+<script src="app.js"></script>
 </body>
 </html>

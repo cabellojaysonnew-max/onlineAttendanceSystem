@@ -1,166 +1,121 @@
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+const SUPABASE_URL = "YOUR_SUPABASE_URL";
+const SUPABASE_KEY = "YOUR_SUPABASE_ANON_KEY";
 
-const SUPABASE_URL="YOUR_SUPABASE_URL";
-const SUPABASE_KEY="YOUR_SUPABASE_KEY";
+const headers = {
+  apikey: SUPABASE_KEY,
+  Authorization: "Bearer " + SUPABASE_KEY,
+  "Content-Type": "application/json"
+};
 
-const db=createClient(SUPABASE_URL,SUPABASE_KEY);
-const app=document.getElementById("app");
-
-function deviceID(){
-let id=localStorage.device_id;
-if(!id){
-id="DAR-"+crypto.randomUUID();
-localStorage.device_id=id;
-}
-return id;
+function showError(msg){
+  document.getElementById("loginError").innerText = msg;
 }
 
-let user=JSON.parse(localStorage.user||"null");
-
-if(user) dashboard();
-else loginUI();
-
-function loginUI(){
-app.innerHTML=`
-<div class="card">
-<img src="dar_logo.png" class="logo">
-<h1>DAR CAMARINES SUR 1</h1>
-<div class="subtitle">Field Attendance Monitoring System</div>
-
-<input id="emp" placeholder="Employee ID">
-<input id="pass" type="password" placeholder="Password">
-
-<button id="loginBtn">Login</button>
-<div id="msg"></div>
-</div>`;
-
-document.getElementById("loginBtn").onclick=login;
+function deviceId(){
+  let id = localStorage.getItem("device_id");
+  if(!id){
+    id = "MOBILE-" + Math.random().toString(36).substring(2,10);
+    localStorage.setItem("device_id",id);
+  }
+  return id;
 }
 
 async function login(){
+  const emp = document.getElementById("empId").value.trim();
+  const pass = document.getElementById("password").value.trim();
 
-try{
+  if(!emp || !pass){ showError("Missing credentials"); return; }
 
-const emp=document.getElementById("emp").value.trim();
-const pass=document.getElementById("pass").value.trim();
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/employees?emp_id=eq.${emp}&select=*`,{headers});
+  const data = await res.json();
 
-const {data,error}=await db
-.from("employees")
-.select("*")
-.eq("emp_id",emp)
-.single();
+  if(!data.length){ showError("User not found"); return; }
 
-if(error||!data) throw Error("User not found");
-if(data.pass!==pass) throw Error("Invalid password");
+  if(data[0].pass !== pass){
+    showError("Invalid password");
+    return;
+  }
 
-if(!data.mobile_device_id){
-await db.from("employees")
-.update({mobile_device_id:deviceID()})
-.eq("emp_id",emp);
-}
-else if(data.mobile_device_id!==deviceID()){
-throw Error("Registered to another device");
-}
+  localStorage.setItem("session_emp", emp);
 
-localStorage.user=JSON.stringify(data);
-user=data;
+  document.getElementById("loginView").classList.add("hidden");
+  document.getElementById("dashboard").classList.remove("hidden");
+  document.getElementById("welcome").innerText = data[0].full_name;
 
-dashboard();
-
-}catch(e){
-document.getElementById("msg").innerText=e.message;
-}
+  loadLogs();
 }
 
-function dashboard(){
-app.innerHTML=`
-<div class="card">
-<img src="dar_logo.png" class="logo">
-<h1>Field Attendance</h1>
+function logout(){
+  localStorage.removeItem("session_emp");
+  location.reload();
+}
 
-<button id="inBtn">Clock In</button>
-<button id="outBtn" class="gold">Clock Out</button>
+async function getLocation(){
+  return new Promise((resolve,reject)=>{
+    navigator.geolocation.getCurrentPosition(
+      pos=>resolve(pos.coords),
+      err=>reject(err),
+      {enableHighAccuracy:true,timeout:15000}
+    );
+  });
+}
 
-<h3>Last 20 Mobile Logs</h3>
-<div id="logs"></div>
-</div>`;
+async function clockIn(){
+  try{
+    const emp = localStorage.getItem("session_emp");
+    if(!emp){ alert("Not logged in"); return; }
 
-document.getElementById("inBtn").onclick=()=>clock("IN");
-document.getElementById("outBtn").onclick=()=>clock("OUT");
+    const coords = await getLocation();
 
-loadLogs();
+    const body = {
+      emp_id: emp,
+      device_id: deviceId(),
+      latitude: coords.latitude,
+      longitude: coords.longitude,
+      device_type: "MOBILE_WEB"
+    };
+
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/attendance_logs`,{
+      method:"POST",
+      headers,
+      body: JSON.stringify(body)
+    });
+
+    if(!r.ok){
+      const t = await r.text();
+      alert("Save failed: "+t);
+      return;
+    }
+
+    alert("Attendance saved");
+    loadLogs();
+
+  }catch(e){
+    alert("Error: "+e.message);
+  }
 }
 
 async function loadLogs(){
+  const emp = localStorage.getItem("session_emp");
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/attendance_logs?emp_id=eq.${emp}&device_type=eq.MOBILE_WEB&order=log_time.desc&limit=20`,{headers});
+  const logs = await res.json();
 
-const {data,error}=await db
-.from("attendance_logs")
-.select("*")
-.eq("emp_id",user.emp_id)
-.eq("device_type","MOBILE_WEB")
-.order("log_time",{ascending:false})
-.limit(20);
+  const ul = document.getElementById("logs");
+  ul.innerHTML = "";
 
-if(error) return alert(error.message);
-
-const logs=document.getElementById("logs");
-
-logs.innerHTML=data.map(l=>`
-<div class="log">
-<b>${new Date(l.log_time).toLocaleString()}</b><br>
-📍 ${l.place_name || "Location unavailable"}
-</div>`).join("");
+  logs.forEach(l=>{
+    const li = document.createElement("li");
+    li.innerText = new Date(l.log_time).toLocaleString();
+    ul.appendChild(li);
+  });
 }
 
-async function clock(type){
-
-if(!navigator.geolocation){
-alert("GPS not supported");
-return;
-}
-
-navigator.geolocation.getCurrentPosition(async pos=>{
-
-try{
-
-const lat=pos.coords.latitude;
-const lng=pos.coords.longitude;
-const acc=pos.coords.accuracy;
-
-if(acc>50) throw Error("GPS accuracy too low");
-
-const geo=await fetch(
-`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
-);
-
-const g=await geo.json();
-
-const {error}=await db
-.from("attendance_logs")
-.insert({
-emp_id:user.emp_id,
-status:type,
-device_id:deviceID(),
-latitude:lat,
-longitude:lng,
-accuracy:acc,
-place_name:g.display_name,
-device_type:"MOBILE_WEB"
-});
-
-if(error) throw error;
-
-alert("Attendance saved");
-loadLogs();
-
-}catch(e){
-alert("ERROR: "+e.message);
-}
-
-},{
-enableHighAccuracy:true,
-maximumAge:0,
-timeout:15000
-});
-}
+window.onload=()=>{
+  const emp = localStorage.getItem("session_emp");
+  if(emp){
+    document.getElementById("loginView").classList.add("hidden");
+    document.getElementById("dashboard").classList.remove("hidden");
+    loadLogs();
+  }
+};
