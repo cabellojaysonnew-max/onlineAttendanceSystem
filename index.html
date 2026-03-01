@@ -4,28 +4,50 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>DAR Field Attendance</title>
+
+<link rel="manifest" href="manifest.json">
 <link rel="stylesheet" href="style.css">
+
 <script src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/dist/bcrypt.min.js"></script>
 </head>
 
-<body class="app-bg">
+<body class="login-bg">
 
-<div class="app-container login-screen">
+<div class="login-wrapper">
 
-<div class="login-header">
-    <img src="logo_dar.png" class="logo">
-    <h2>DAR CAMARINES SUR 1</h2>
-    <span>Field Attendance Monitoring System</span>
-</div>
+    <img src="logo_dar.png" class="logo-center">
 
-<div class="login-card">
-<input id="emp" placeholder="Employee ID">
-<input id="pass" type="password" placeholder="Password">
-<button class="primary-btn" onclick="login()">Login</button>
-</div>
+    <h1 class="title">DAR CAMARINES SUR 1</h1>
+    <p class="subtitle">Field Attendance Monitoring System</p>
+
+    <div class="login-card">
+        <input id="emp" placeholder="Employee ID">
+        <input id="pass" type="password" placeholder="Password">
+        <button id="loginBtn" class="primary-btn">Login</button>
+    </div>
 
 </div>
 
 <script type="module" src="app.js"></script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').then(reg => {
+
+    // AUTO UPDATE CHECK
+    reg.addEventListener('updatefound', () => {
+      const newWorker = reg.installing;
+      newWorker.addEventListener('statechange', () => {
+        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          alert("New version available. App will update automatically.");
+          window.location.reload();
+        }
+      });
+    });
+
+  });
+}
+</script>
+
 </body>
 </html>

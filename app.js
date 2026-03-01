@@ -1,7 +1,5 @@
 import { supabase } from "./supabase.js";
 
-const employee = JSON.parse(localStorage.getItem("employee"));
-
 function isMobile(){
   return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
@@ -15,80 +13,69 @@ function getDeviceId(){
   return id;
 }
 
-window.login = async function(){
+const loginBtn=document.getElementById("loginBtn");
+if(loginBtn){ loginBtn.addEventListener("click",login); }
 
-  const emp = document.getElementById("emp").value.trim();
-  const pass = document.getElementById("pass").value;
+async function login(){
 
-  const { data } = await supabase
-      .from("employees")
-      .select("*")
-      .eq("emp_id", emp)
-      .single();
+  const emp=document.getElementById("emp").value.trim();
+  const pass=document.getElementById("pass").value;
 
-  if(!data){
-      alert("Invalid Employee ID");
-      return;
-  }
+  const { data,error }=await supabase
+    .from("employees")
+    .select("*")
+    .eq("emp_id",emp)
+    .single();
 
-  const valid = bcrypt.compareSync(pass, data.pass);
+  if(error||!data){ alert("Invalid Employee ID"); return; }
 
-  if(!valid){
-      alert("Invalid Password");
-      return;
-  }
+  const valid=bcrypt.compareSync(pass,data.pass);
+  if(!valid){ alert("Invalid Password"); return; }
 
-  const deviceId = getDeviceId();
+  const deviceId=getDeviceId();
 
   if(isMobile()){
-
-      const { data: used } = await supabase
-          .from("employees")
-          .select("emp_id")
-          .eq("mobile_device_id", deviceId);
-
-      if(used.length > 0 && used[0].emp_id !== emp){
-          alert("This mobile device is already registered to another employee.");
-          return;
-      }
-
-      if(!data.mobile_device_id){
-          await supabase.from("employees")
-              .update({ mobile_device_id: deviceId })
-              .eq("emp_id", emp);
-      }
-      else if(data.mobile_device_id !== deviceId){
-          alert("Account already linked to another mobile device.");
-          return;
-      }
+    if(!data.mobile_device_id){
+      await supabase.from("employees")
+        .update({mobile_device_id:deviceId})
+        .eq("emp_id",emp);
+    } else if(data.mobile_device_id!==deviceId){
+      alert("Account already registered to another device.");
+      return;
+    }
   }
 
-  localStorage.setItem("employee", JSON.stringify({
-      emp_id:data.emp_id,
-      full_name:data.full_name
+  localStorage.setItem("employee",JSON.stringify({
+    emp_id:data.emp_id,
+    full_name:data.full_name
   }));
 
   window.location="dashboard.html";
-};
-
-if(employee){
-  window.addEventListener("DOMContentLoaded", initDashboard);
 }
+
+const employee=JSON.parse(localStorage.getItem("employee"));
+if(employee){ initDashboard(); }
 
 async function initDashboard(){
 
-  document.getElementById("name").innerText = employee.full_name;
-  document.getElementById("empid").innerText = employee.emp_id;
+  const nameEl=document.getElementById("name");
+  if(!nameEl) return;
 
-  const btn = document.getElementById("clockBtn");
-  const notice = document.getElementById("deviceNotice");
+  document.getElementById("name").innerText=employee.full_name;
+  document.getElementById("empid").innerText=employee.emp_id;
+
+  const clockBtn=document.getElementById("clockBtn");
+  const logoutBtn=document.getElementById("logoutBtn");
+  const notice=document.getElementById("deviceNotice");
+
+  logoutBtn.addEventListener("click",logout);
 
   if(!isMobile()){
-      btn.disabled = true;
-      btn.innerText = "Laptop View‑Only Mode";
-      notice.innerText = "Clock‑in allowed only on registered mobile device.";
+    clockBtn.disabled=true;
+    clockBtn.innerText="Laptop View-Only Mode";
+    notice.innerText="Clock-in allowed only on registered mobile device.";
   }else{
-      btn.onclick = clockIn;
+    clockBtn.addEventListener("click",clockIn);
   }
 
   await loadHistory();
@@ -96,59 +83,79 @@ async function initDashboard(){
 
 async function clockIn(){
 
-  const pos = await new Promise((resolve,reject)=>{
-      navigator.geolocation.getCurrentPosition(resolve,reject,{
-          enableHighAccuracy:true,
-          maximumAge:0,
-          timeout:15000
-      });
+  const pos=await new Promise((resolve,reject)=>{
+    navigator.geolocation.getCurrentPosition(resolve,reject,{
+      enableHighAccuracy:true,maximumAge:0,timeout:15000
+    });
   });
 
   await supabase.from("attendance_logs").insert({
-      emp_id: employee.emp_id,
-      log_time: new Date().toISOString(),
-      device_id: "MOBILE_WEB",
-      status: "IN",
-      latitude: pos.coords.latitude,
-      longitude: pos.coords.longitude,
-      accuracy: pos.coords.accuracy
+    emp_id:employee.emp_id,
+    log_time:new Date().toISOString(),
+    device_id:"MOBILE_WEB",
+    status:"IN",
+    latitude:pos.coords.latitude,
+    longitude:pos.coords.longitude,
+    accuracy:pos.coords.accuracy
   });
 
   location.reload();
 }
 
-async function loadHistory(){
+async function getPlaceName(lat,lon){
 
-  const { data } = await supabase
-      .from("attendance_logs")
-      .select("*")
-      .eq("emp_id", employee.emp_id)
-      .eq("device_id","MOBILE_WEB")
-      .order("log_time",{ascending:false})
-      .limit(10);
+  const key=`place_${lat.toFixed(4)}_${lon.toFixed(4)}`;
+  const cached=localStorage.getItem(key);
+  if(cached) return cached;
 
-  const container = document.getElementById("history");
-  container.innerHTML = "";
-
-  if(!data || data.length===0){
-      container.innerHTML="<p>No field attendance records.</p>";
-      return;
+  try{
+    const res=await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+    const data=await res.json();
+    const place=data.display_name||"Location unavailable";
+    localStorage.setItem(key,place);
+    return place;
+  }catch{
+    return "Location unavailable";
   }
-
-  data.forEach(row=>{
-      const d=new Date(row.log_time);
-      container.innerHTML+=`
-      <div class="history-item">
-          <div>
-              <strong>${d.toLocaleDateString()}</strong><br>
-              <span class="time">${d.toLocaleTimeString()}</span>
-          </div>
-          <div class="device-tag">FIELD</div>
-      </div>`;
-  });
 }
 
-window.logout=function(){
+async function loadHistory(){
+
+  const container=document.getElementById("history");
+  if(!container) return;
+
+  const { data }=await supabase
+    .from("attendance_logs")
+    .select("*")
+    .eq("emp_id",employee.emp_id)
+    .eq("device_id","MOBILE_WEB")
+    .order("log_time",{ascending:false})
+    .limit(20);
+
+  container.innerHTML="";
+
+  if(!data||data.length===0){
+    container.innerHTML="<p>No attendance records.</p>";
+    return;
+  }
+
+  for(const row of data){
+    const d=new Date(row.log_time);
+    const place=await getPlaceName(row.latitude,row.longitude);
+
+    container.innerHTML+=`
+    <div class="history-item">
+      <div>
+        <div class="history-date">${d.toLocaleDateString()}</div>
+        <div class="history-time">${d.toLocaleTimeString()}</div>
+        <div class="history-location">📍 ${place}</div>
+      </div>
+      <div class="device-tag">FIELD</div>
+    </div>`;
+  }
+}
+
+function logout(){
   localStorage.removeItem("employee");
   window.location="index.html";
-};
+}
