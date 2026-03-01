@@ -42,6 +42,7 @@ padding:12px;
 margin:8px 0;
 border-radius:10px;
 border:1px solid #ccc;
+font-size:16px;
 }
 
 button{
@@ -52,6 +53,7 @@ color:white;
 border:none;
 border-radius:12px;
 font-size:16px;
+cursor:pointer;
 }
 
 .subtitle{
@@ -60,4 +62,5 @@ color:#c8a028;
 
 .error{
 color:red;
+margin-top:10px;
 }

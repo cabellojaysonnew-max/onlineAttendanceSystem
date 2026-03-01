@@ -7,13 +7,19 @@ apikey:API_KEY,
 };
 
 function showError(msg){
-document.getElementById("error").innerText=msg;
+const el=document.getElementById("error");
+if(el) el.innerText=msg;
 }
 
 async function login(){
 
 const emp=document.getElementById("emp").value.trim();
 const pass=document.getElementById("pass").value;
+
+if(!emp||!pass){
+showError("Enter Employee ID and Password");
+return;
+}
 
 const res=await fetch(`${SUPABASE_URL}/employees?emp_id=eq.${emp}`,{headers});
 const data=await res.json();
@@ -24,7 +30,7 @@ const user=data[0];
 
 let valid=false;
 
-if(user.pass.startsWith("$2")){
+if(user.pass && user.pass.startsWith("$2")){
 valid=bcrypt.compareSync(pass,user.pass);
 }else{
 valid=(pass===user.pass);
@@ -124,3 +130,17 @@ div.innerHTML+=`
 📍 ${r.address||"Location recorded"}</p><hr>`;
 });
 }
+
+/* SAFE INITIALIZATION */
+document.addEventListener("DOMContentLoaded",()=>{
+
+const loginBtn=document.getElementById("loginBtn");
+if(loginBtn) loginBtn.addEventListener("click",login);
+
+const clockBtn=document.getElementById("clockBtn");
+if(clockBtn){
+clockBtn.addEventListener("click",clockIn);
+loadDashboard();
+}
+
+});

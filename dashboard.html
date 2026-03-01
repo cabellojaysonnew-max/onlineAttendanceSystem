@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Dashboard</title>
 <link rel="stylesheet" href="style.css">
+<script src="app.js" defer></script>
 </head>
+
 <body>
 
 <div class="header">
@@ -19,7 +22,7 @@
 
 <div class="card">
 <h4>Today's Status</h4>
-<button id="clockBtn" onclick="clockIn()">Clock In</button>
+<button id="clockBtn">Clock In</button>
 <p id="status"></p>
 </div>
 
@@ -28,7 +31,5 @@
 <div id="history"></div>
 </div>
 
-<script src="app.js"></script>
-<script>loadDashboard()</script>
 </body>
 </html>
