@@ -1,26 +1,36 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DAR Field Attendance</title>
-<link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="center">
-<div class="card login-card">
-<img src="dar_logo.png" class="logo"/>
-<h2>DAR CAMARINES SUR 1</h2>
-<p class="subtitle">Field Attendance Monitoring System</p>
+<body>
 
-<input id="emp" placeholder="Employee ID">
-<input id="pass" type="password" placeholder="Password">
+<div class="container">
+  <img src="dar_logo.png" class="logo">
+  <h1>DAR CAMARINES SUR 1</h1>
+  <p class="subtitle">Field Attendance Monitoring System</p>
 
-<button id="loginBtn">Login</button>
-<p id="error" class="error"></p>
+  <div id="loginCard" class="card">
+    <input id="empId" placeholder="Employee ID">
+    <input id="password" type="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <div id="error" class="error"></div>
+  </div>
+
+  <div id="dashboard" class="hidden">
+    <h2 id="welcome"></h2>
+    <button onclick="clockIn()">Clock In</button>
+    <button onclick="logout()">Logout</button>
+    <h3>Last 20 Mobile Logs</h3>
+    <ul id="logs"></ul>
+  </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
