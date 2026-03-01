@@ -6,25 +6,25 @@ font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,s
 color:#1c1c1e;
 }
 
-.container{
+.app{
 max-width:420px;
 margin:auto;
 padding:24px;
-}
-
-.center{
-display:flex;
-flex-direction:column;
-align-items:center;
-justify-content:center;
-min-height:100vh;
 text-align:center;
 }
 
-.logo{width:90px;margin-bottom:10px;}
-.logo.small{width:65px;margin:auto;display:block;}
+.center{
+min-height:100vh;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+}
 
-.subtitle{color:#caa43b;margin-top:4px;}
+.logo{width:90px;margin-bottom:10px;}
+.logo.small{width:60px;margin:auto;display:block;}
+
+.subtitle{color:#d4af37;}
 
 .card{
 background:white;
@@ -56,5 +56,4 @@ margin-top:10px;
 }
 
 button.gold{background:#d4af37;}
-
 .error{color:#c62828;}
