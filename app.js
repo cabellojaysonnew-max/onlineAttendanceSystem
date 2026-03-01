@@ -2,120 +2,137 @@
 const SUPABASE_URL = "YOUR_SUPABASE_URL";
 const SUPABASE_KEY = "YOUR_SUPABASE_ANON_KEY";
 
-const headers = {
-  apikey: SUPABASE_KEY,
-  Authorization: "Bearer " + SUPABASE_KEY,
-  "Content-Type": "application/json"
-};
+let user=null;
 
-function showError(msg){
-  document.getElementById("loginError").innerText = msg;
+function saveSession(u){
+ localStorage.setItem("dar_session",JSON.stringify(u));
 }
 
-function deviceId(){
-  let id = localStorage.getItem("device_id");
-  if(!id){
-    id = "MOBILE-" + Math.random().toString(36).substring(2,10);
-    localStorage.setItem("device_id",id);
-  }
-  return id;
+function loadSession(){
+ const s=localStorage.getItem("dar_session");
+ if(s){
+   user=JSON.parse(s);
+   showDashboard();
+ }
 }
 
 async function login(){
-  const emp = document.getElementById("empId").value.trim();
-  const pass = document.getElementById("password").value.trim();
+ const id=document.getElementById("empId").value.trim();
+ const pass=document.getElementById("password").value.trim();
 
-  if(!emp || !pass){ showError("Missing credentials"); return; }
+ const res=await fetch(SUPABASE_URL+"/rest/v1/employees?emp_id=eq."+id,{
+   headers:{
+     apikey:SUPABASE_KEY,
+     Authorization:"Bearer "+SUPABASE_KEY
+   }
+ });
 
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/employees?emp_id=eq.${emp}&select=*`,{headers});
-  const data = await res.json();
+ const data=await res.json();
+ if(!data.length){ alert("User not found"); return; }
 
-  if(!data.length){ showError("User not found"); return; }
+ if(pass!==data[0].pass){
+   alert("Invalid password");
+   return;
+ }
 
-  if(data[0].pass !== pass){
-    showError("Invalid password");
-    return;
-  }
-
-  localStorage.setItem("session_emp", emp);
-
-  document.getElementById("loginView").classList.add("hidden");
-  document.getElementById("dashboard").classList.remove("hidden");
-  document.getElementById("welcome").innerText = data[0].full_name;
-
-  loadLogs();
+ user=data[0];
+ saveSession(user);
+ showDashboard();
 }
 
-function logout(){
-  localStorage.removeItem("session_emp");
-  location.reload();
+function showDashboard(){
+ document.getElementById("loginView").classList.add("hidden");
+ document.getElementById("dashboard").classList.remove("hidden");
+ document.getElementById("userName").innerText=user.full_name;
+ getLocation();
+ loadLogs();
 }
 
-async function getLocation(){
-  return new Promise((resolve,reject)=>{
-    navigator.geolocation.getCurrentPosition(
-      pos=>resolve(pos.coords),
-      err=>reject(err),
-      {enableHighAccuracy:true,timeout:15000}
-    );
-  });
+function getLocation(){
+ navigator.geolocation.getCurrentPosition(async pos=>{
+   const lat=pos.coords.latitude;
+   const lon=pos.coords.longitude;
+
+   localStorage.setItem("gps",JSON.stringify({lat,lon}));
+
+   document.getElementById("location").innerText=
+     "Lat:"+lat+" Lon:"+lon;
+
+ },()=>alert("GPS required"),{enableHighAccuracy:true});
 }
 
-async function clockIn(){
-  try{
-    const emp = localStorage.getItem("session_emp");
-    if(!emp){ alert("Not logged in"); return; }
+function offlineQueue(log){
+ let q=JSON.parse(localStorage.getItem("offline_logs")||"[]");
+ q.push(log);
+ localStorage.setItem("offline_logs",JSON.stringify(q));
+}
 
-    const coords = await getLocation();
+async function syncOffline(){
+ if(!navigator.onLine) return;
 
-    const body = {
-      emp_id: emp,
-      device_id: deviceId(),
-      latitude: coords.latitude,
-      longitude: coords.longitude,
-      device_type: "MOBILE_WEB"
-    };
+ let q=JSON.parse(localStorage.getItem("offline_logs")||"[]");
+ for(const log of q){
+   await sendLog(log);
+ }
+ localStorage.removeItem("offline_logs");
+}
 
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/attendance_logs`,{
-      method:"POST",
-      headers,
-      body: JSON.stringify(body)
-    });
+async function sendLog(log){
+ await fetch(SUPABASE_URL+"/rest/v1/attendance_logs",{
+   method:"POST",
+   headers:{
+     apikey:SUPABASE_KEY,
+     Authorization:"Bearer "+SUPABASE_KEY,
+     "Content-Type":"application/json"
+   },
+   body:JSON.stringify(log)
+ });
+}
 
-    if(!r.ok){
-      const t = await r.text();
-      alert("Save failed: "+t);
-      return;
-    }
+async function clock(type){
 
-    alert("Attendance saved");
-    loadLogs();
+ const gps=JSON.parse(localStorage.getItem("gps")||"{}");
 
-  }catch(e){
-    alert("Error: "+e.message);
-  }
+ if(!gps.lat){
+   alert("Location not ready");
+   return;
+ }
+
+ const log={
+   emp_id:user.emp_id,
+   log_time:new Date().toISOString(),
+   device_id:"mobile_in",
+   status:type,
+   latitude:gps.lat,
+   longitude:gps.lon,
+   device_type:"MOBILE_WEB"
+ };
+
+ if(navigator.onLine){
+   await sendLog(log);
+ }else{
+   offlineQueue(log);
+ }
+
+ loadLogs();
 }
 
 async function loadLogs(){
-  const emp = localStorage.getItem("session_emp");
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/attendance_logs?emp_id=eq.${emp}&device_type=eq.MOBILE_WEB&order=log_time.desc&limit=20`,{headers});
-  const logs = await res.json();
 
-  const ul = document.getElementById("logs");
-  ul.innerHTML = "";
+ const res=await fetch(
+   SUPABASE_URL+"/rest/v1/attendance_logs?emp_id=eq."+user.emp_id+"&device_id=eq.mobile_in",
+   {headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY}}
+ );
 
-  logs.forEach(l=>{
-    const li = document.createElement("li");
-    li.innerText = new Date(l.log_time).toLocaleString();
-    ul.appendChild(li);
-  });
+ const data=await res.json();
+ const ul=document.getElementById("logs");
+ ul.innerHTML="";
+ data.slice(-4).forEach(l=>{
+   const li=document.createElement("li");
+   li.innerText=l.status+" "+new Date(l.log_time).toLocaleTimeString();
+   ul.appendChild(li);
+ });
 }
 
-window.onload=()=>{
-  const emp = localStorage.getItem("session_emp");
-  if(emp){
-    document.getElementById("loginView").classList.add("hidden");
-    document.getElementById("dashboard").classList.remove("hidden");
-    loadLogs();
-  }
-};
+window.addEventListener("online",syncOffline);
+loadSession();

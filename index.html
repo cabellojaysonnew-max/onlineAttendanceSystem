@@ -1,36 +1,27 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>DAR Field Attendance</title>
 <link rel="stylesheet" href="styles.css">
-<link rel="manifest" href="manifest.json">
 </head>
 <body>
 
-<div id="app">
-  <div class="login-card" id="loginView">
-    <img src="dar_logo.png" class="logo">
-    <h1>DAR CAMARINES SUR 1</h1>
-    <p class="subtitle">Field Attendance Monitoring System</p>
+<div id="loginView" class="container">
+  <img src="dar_logo.png" class="logo">
+  <h1>DAR Field Attendance</h1>
+  <input id="empId" placeholder="Employee ID">
+  <input id="password" type="password" placeholder="Password">
+  <button onclick="login()">Login</button>
+</div>
 
-    <input id="empId" placeholder="Employee ID">
-    <input id="password" type="password" placeholder="Password">
-    <button onclick="login()">Login</button>
-    <p id="loginError" class="error"></p>
-  </div>
-
-  <div id="dashboard" class="hidden">
-    <img src="dar_logo.png" class="logo small">
-    <h2 id="welcome"></h2>
-
-    <button id="clockBtn" onclick="clockIn()">Clock In</button>
-    <button onclick="logout()">Logout</button>
-
-    <h3>Last 20 Mobile Logs</h3>
-    <ul id="logs"></ul>
-  </div>
+<div id="dashboard" class="container hidden">
+  <h2 id="userName"></h2>
+  <div id="location">Detecting location...</div>
+  <button onclick="clock('IN')">Clock In</button>
+  <button onclick="clock('OUT')">Clock Out</button>
+  <h3>Today's Logs</h3>
+  <ul id="logs"></ul>
 </div>
 
 <script src="app.js"></script>

@@ -1,9 +1,8 @@
-
 {
   "name": "DAR Field Attendance",
   "short_name": "DAR Attendance",
-  "start_url": ".",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#1f6f2e"
+  "theme_color": "#1e6b2c"
 }
