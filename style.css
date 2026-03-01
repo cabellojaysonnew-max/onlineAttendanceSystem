@@ -1,25 +1,193 @@
-body{margin:0;font-family:Segoe UI;background:#eef2ef;color:#222}
-.login-bg{display:flex;justify-content:center;align-items:center;height:100vh;}
-.login-wrapper{text-align:center;width:100%;max-width:420px;}
-.logo-center{width:90px;margin-bottom:10px;}
-.title{margin:0;color:#1b5e20;}
-.subtitle{margin-top:4px;color:#c9a227;}
-.login-card{background:white;padding:25px;border-radius:18px;
-box-shadow:0 6px 14px rgba(0,0,0,.08);margin-top:20px;}
-input{width:100%;padding:14px;margin-top:12px;border-radius:12px;border:1px solid #ddd;}
-.primary-btn{width:100%;padding:16px;border:none;border-radius:14px;background:#1b5e20;color:white;font-size:18px;margin-top:15px;}
-.logout-btn{width:100%;padding:14px;margin-top:12px;border:none;border-radius:12px;background:#c9a227;color:white;}
-.app-container{max-width:420px;margin:auto;padding:20px;}
-.header{display:flex;align-items:center;margin-bottom:20px;}
-.header-left{display:flex;align-items:center;gap:12px;}
-.logo-small{width:50px;}
-.card{background:white;border-radius:18px;padding:20px;margin-top:15px;
-box-shadow:0 6px 14px rgba(0,0,0,.06);}
-.profile-name{font-size:20px;font-weight:600;color:#1b5e20;}
-.profile-id{color:#777;}
-.history-item{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #eee;}
-.history-date{font-weight:600;}
-.history-time{color:#1b5e20;font-weight:600;}
-.history-location{font-size:13px;color:#666;margin-top:4px;}
-.device-tag{background:#c9a227;color:white;padding:6px 10px;border-radius:8px;font-size:12px;height:fit-content;}
-.device-note{font-size:12px;color:#666;margin-top:8px;}
+/* ===== PREMIUM DAR UI ===== */
+
+:root{
+--dar-green:#1b5e20;
+--dar-gold:#c9a227;
+}
+
+body{
+margin:0;
+font-family:"Inter",sans-serif;
+background:#eef2ef;
+color:#1f2933;
+}
+
+/* FADE ANIMATION */
+.fade-in{
+animation:fade .4s ease;
+}
+@keyframes fade{
+from{opacity:0;transform:translateY(8px)}
+to{opacity:1;transform:translateY(0)}
+}
+
+/* LOGIN */
+.login-bg{
+min-height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+padding:20px;
+}
+
+.login-wrapper{
+width:100%;
+max-width:380px;
+text-align:center;
+}
+
+.logo-center{
+width:90px;
+margin-bottom:10px;
+}
+
+.title{
+margin:6px 0 0;
+color:var(--dar-green);
+font-weight:700;
+}
+
+.subtitle{
+color:var(--dar-gold);
+font-size:14px;
+}
+
+.login-card{
+background:white;
+margin-top:22px;
+padding:28px 22px;
+border-radius:18px;
+box-shadow:0 10px 25px rgba(0,0,0,.08);
+display:flex;
+flex-direction:column;
+gap:14px;
+}
+
+input{
+padding:14px;
+border-radius:12px;
+border:1px solid #ddd;
+font-size:15px;
+}
+
+/* BUTTONS */
+.primary-btn,.logout-btn{
+position:relative;
+overflow:hidden;
+padding:16px;
+border:none;
+border-radius:14px;
+font-size:16px;
+font-weight:600;
+color:white;
+cursor:pointer;
+}
+
+.primary-btn{
+background:var(--dar-green);
+}
+
+.logout-btn{
+background:var(--dar-gold);
+margin-top:10px;
+}
+
+/* RIPPLE EFFECT */
+.ripple:after{
+content:"";
+position:absolute;
+background:rgba(255,255,255,.4);
+border-radius:50%;
+transform:scale(0);
+opacity:0;
+pointer-events:none;
+}
+
+.ripple:active:after{
+animation:ripple .5s linear;
+}
+
+@keyframes ripple{
+from{transform:scale(0);opacity:.6}
+to{transform:scale(4);opacity:0}
+}
+
+/* SPINNER */
+.spinner{
+width:18px;
+height:18px;
+border:3px solid rgba(255,255,255,.4);
+border-top:3px solid white;
+border-radius:50%;
+display:inline-block;
+animation:spin 1s linear infinite;
+margin-left:8px;
+}
+.hidden{display:none;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* HEADER */
+.dar-header{
+text-align:center;
+margin:20px 0 10px;
+}
+
+.dar-logo{
+width:70px;
+margin-bottom:8px;
+}
+
+.dar-header h1{
+margin:0;
+font-size:20px;
+color:var(--dar-green);
+}
+
+.dar-header p{
+color:var(--dar-gold);
+font-size:14px;
+}
+
+/* CARDS */
+.app-container{
+max-width:420px;
+margin:auto;
+padding:15px;
+}
+
+.card{
+background:white;
+border-radius:18px;
+padding:20px;
+margin-top:15px;
+box-shadow:0 6px 14px rgba(0,0,0,.06);
+}
+
+.profile-name{
+font-size:19px;
+font-weight:600;
+color:var(--dar-green);
+}
+
+.profile-id{
+color:#6b7280;
+}
+
+.history-item{
+display:flex;
+justify-content:space-between;
+padding:12px 0;
+border-bottom:1px solid #eee;
+}
+
+.history-date{font-weight:600}
+.history-time{color:var(--dar-green);font-weight:600}
+.history-location{font-size:13px;color:#6b7280}
+
+.device-tag{
+background:var(--dar-gold);
+color:white;
+padding:6px 10px;
+border-radius:10px;
+font-size:12px;
+}
