@@ -8,14 +8,14 @@ const headers={
 "Content-Type":"application/json"
 };
 
-// SESSION CHECK
+// Session check
 if(location.pathname.includes("dashboard")){
     const emp=sessionStorage.getItem("emp");
     if(!emp) location.href="index.html";
     else loadDashboard();
 }
 
-// LOGIN WITH ERROR DETECTION
+// LOGIN
 async function login(){
 try{
 const emp=document.getElementById("emp").value.trim();
@@ -26,7 +26,6 @@ const data=await res.json();
 
 if(!data.length) throw "Employee not found";
 
-// default password rule
 if(pass!=="1111" && !data[0].pass.startsWith("$2b$"))
     throw "Invalid password";
 
@@ -40,14 +39,34 @@ document.getElementById("loginError").innerText=err;
 }
 }
 
-// DASHBOARD LOAD
+// Dashboard load
 function loadDashboard(){
 document.getElementById("name").innerText=sessionStorage.getItem("name");
 document.getElementById("empid").innerText=sessionStorage.getItem("emp");
 fetchHistory();
+detectLocation();
 }
 
-// CLOCK IN WITH FULL ERROR CHECK
+// Reverse geocode (GPS -> place name)
+async function reverseGeocode(lat,lon){
+try{
+const r=await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+const d=await r.json();
+return d.display_name || "Location detected";
+}catch{
+return "Location unavailable";
+}
+}
+
+// Detect location for dashboard display
+function detectLocation(){
+navigator.geolocation.getCurrentPosition(async pos=>{
+const place=await reverseGeocode(pos.coords.latitude,pos.coords.longitude);
+document.getElementById("currentLocation").innerText=place;
+},{enableHighAccuracy:true,maximumAge:0});
+}
+
+// CLOCK IN WITH ERROR DETECTION
 async function clockIn(){
 
 const btn=document.getElementById("clockBtn");
@@ -58,7 +77,6 @@ try{
 const emp=sessionStorage.getItem("emp");
 if(!emp) throw "Session expired";
 
-// CHECK TODAY ENTRY
 const today=new Date().toISOString().split("T")[0];
 
 const check=await fetch(
@@ -66,15 +84,16 @@ const check=await fetch(
 {headers});
 
 const existing=await check.json();
+if(existing.length>0) throw "Already clocked in today";
 
-if(existing.length>0)
-    throw "Already clocked in today";
-
-// GPS
 const pos=await new Promise((resolve,reject)=>{
 navigator.geolocation.getCurrentPosition(resolve,reject,
 {enableHighAccuracy:true,maximumAge:0,timeout:15000});
 });
+
+const place=await reverseGeocode(pos.coords.latitude,pos.coords.longitude);
+
+document.getElementById("currentLocation").innerText=place;
 
 const now=new Date().toISOString();
 
@@ -85,7 +104,9 @@ created_at:now,
 device_id:"MOBILE_WEB",
 status:"IN",
 latitude:pos.coords.latitude,
-longitude:pos.coords.longitude
+longitude:pos.coords.longitude,
+place_name:place,
+address:place
 };
 
 const save=await fetch(`${SUPABASE_URL}/rest/v1/attendance_logs`,{
@@ -96,10 +117,9 @@ body:JSON.stringify(payload)
 
 const result=await save.json();
 
-if(!save.ok)
-    throw JSON.stringify(result);
+if(!save.ok) throw JSON.stringify(result);
 
-alert("Attendance recorded");
+alert("✅ Attendance recorded");
 fetchHistory();
 
 }catch(err){
@@ -125,9 +145,9 @@ div.innerHTML="";
 
 logs.forEach(l=>{
 div.innerHTML+=`
-<div style="padding:8px 0;border-bottom:1px solid #eee">
+<div style="padding:10px 0;border-bottom:1px solid #eee">
 <b>${new Date(l.log_time).toLocaleString()}</b><br>
-${l.place_name || "Location recorded"}
+📍 ${l.place_name || "Location recorded"}
 </div>`;
 });
 }
