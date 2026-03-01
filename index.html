@@ -1,26 +1,31 @@
+
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>DAR Field Attendance</title>
 <link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.json">
 </head>
 
-<body class="login-bg">
+<body class="app-bg">
 
-<div class="login-wrapper">
-    <img src="logo_dar.png" class="logo">
-    <h1>DAR CAMARINES SUR 1</h1>
-    <p class="subtitle">Field Attendance Monitoring System</p>
+<div class="app-container center">
 
-    <div class="card">
-        <input id="emp" placeholder="Employee ID">
-        <input id="pass" type="password" placeholder="Password">
-        <button id="loginBtn">Login</button>
+    <img src="logo_dar.png" class="logo-center"/>
+
+    <h1 class="app-title">DAR CAMARINES SUR 1</h1>
+    <p class="app-sub">Field Attendance Monitoring System</p>
+
+    <div class="card login-card">
+        <input id="emp" placeholder="Employee ID" class="input"/>
+        <input id="pass" type="password" placeholder="Password" class="input"/>
+        <button class="primary-btn" onclick="login()">Login</button>
     </div>
+
 </div>
 
-<script type="module" src="app.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
