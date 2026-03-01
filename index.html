@@ -8,10 +8,12 @@
 <link rel="stylesheet" href="styles.css">
 <link rel="manifest" href="manifest.json">
 </head>
+
 <body>
 
 <div class="app">
 
+<!-- LOGIN -->
 <div id="loginCard" class="card">
 <img src="dar_logo.png" class="logo">
 <h1>DAR CAMARINES SUR 1</h1>
@@ -19,22 +21,31 @@
 
 <input id="empId" placeholder="Employee ID">
 <input id="password" type="password" placeholder="Password">
-<button id="loginBtn">Login</button>
+
+<button id="loginBtn" class="primary">Login</button>
 </div>
 
+<!-- DASHBOARD -->
 <div id="dashboard" class="hidden">
-<header>
+
+<header class="header">
 <img src="dar_logo.png" class="logo-small">
-<h2>DAR Field Attendance</h2>
+<h2>Field Attendance</h2>
 </header>
 
-<button id="clockBtn" class="primary">Clock In</button>
+<div class="actions">
+<button id="clockInBtn" class="primary">Clock In</button>
+<button id="clockOutBtn" class="secondary">Clock Out</button>
+</div>
 
-<h3>Last 20 Mobile Logs</h3>
-<ul id="logs"></ul>
+<h3>Attendance History</h3>
+<ul id="logs" class="logs"></ul>
+
 </div>
 
 </div>
+
+<div id="errorBox" class="errorBox hidden"></div>
 
 <script src="app.js"></script>
 </body>
