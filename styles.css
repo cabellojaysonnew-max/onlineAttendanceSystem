@@ -50,20 +50,10 @@ margin-top:10px;
 cursor:pointer;
 }
 
-.primary{
-background:#1f6f2e;
-color:white;
-}
+.primary{background:#1f6f2e;color:white;}
+.secondary{background:#c9a227;color:white;}
 
-.secondary{
-background:#c9a227;
-color:white;
-}
-
-.actions{
-display:flex;
-gap:10px;
-}
+.actions{display:flex;gap:10px;}
 
 .logs{
 background:white;

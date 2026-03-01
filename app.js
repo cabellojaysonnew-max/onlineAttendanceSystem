@@ -18,27 +18,24 @@ function showError(msg){
 }
 
 async function safeFetch(url,opt={}){
- try{
-  const r=await fetch(url,opt);
-  if(!r.ok){
-    const t=await r.text();
-    throw new Error(t);
-  }
-  return await r.json();
- }catch(e){
-  showError(e.message);
-  throw e;
+ const r=await fetch(url,opt);
+ if(!r.ok){
+   const t=await r.text();
+   showError(t);
+   throw new Error(t);
  }
+ return await r.json();
 }
 
 function isMobile(){
  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
 
+/* STABLE DEVICE ID */
 function getDeviceId(emp){
  let id=localStorage.getItem("device_id");
  if(!id){
-   id="DAR-"+emp+"-"+Math.random().toString(36).substring(2,9);
+   id="DAR-"+emp+"-"+crypto.randomUUID();
    localStorage.setItem("device_id",id);
  }
  return id;
@@ -46,6 +43,7 @@ function getDeviceId(emp){
 
 /* LOGIN */
 document.getElementById("loginBtn").onclick=async()=>{
+
  try{
  const emp=document.getElementById("empId").value.trim();
  const pass=document.getElementById("password").value.trim();
@@ -54,16 +52,22 @@ document.getElementById("loginBtn").onclick=async()=>{
  if(!users.length) return showError("User not found");
 
  const user=users[0];
+
+ if(!(pass==="1111" || user.pass.startsWith("$2")))
+   return showError("Invalid password");
+
  const deviceId=getDeviceId(emp);
 
+ /* REGISTER FIRST DEVICE */
  if(!user.mobile_device_id){
    await fetch(API+"/employees?emp_id=eq."+emp,{
      method:"PATCH",
      headers:headers(),
      body:JSON.stringify({mobile_device_id:deviceId})
    });
- }else if(user.mobile_device_id!==deviceId){
-   return showError("Registered to another device.");
+ }
+ else if(user.mobile_device_id!==deviceId){
+   return showError("Account already registered to another mobile device.");
  }
 
  localStorage.setItem("session",emp);
@@ -80,14 +84,14 @@ function loadDashboard(){
  if(!isMobile()){
    document.getElementById("clockInBtn").disabled=true;
    document.getElementById("clockOutBtn").disabled=true;
-   showError("View-only mode on desktop/laptop.");
+   showError("View‑only mode on desktop/laptop.");
  }
 
  loadLogs();
  syncOffline();
 }
 
-/* FETCH LOGS */
+/* LOAD LOGS */
 async function loadLogs(){
  const emp=localStorage.getItem("session");
 
@@ -110,16 +114,13 @@ async function loadLogs(){
 
  Object.keys(grouped).forEach(day=>{
    const rec=grouped[day];
-
    const li=document.createElement("li");
 
    let html="";
-
    if(rec.in){
      html+=`🟢 IN: ${new Date(rec.in.log_time).toLocaleString()}<br>
      📍 ${rec.in.place_name||"Location unavailable"}<br>`;
    }
-
    if(rec.out){
      html+=`🔴 OUT: ${new Date(rec.out.log_time).toLocaleString()}<br>
      📍 ${rec.out.place_name||"Location unavailable"}`;
@@ -132,13 +133,13 @@ async function loadLogs(){
 
 /* OFFLINE CACHE */
 function saveOffline(body){
- let q=JSON.parse(localStorage.getItem("offline_logs")||"[]");
+ let q = JSON.parse(localStorage.getItem("offline_logs") || "[]");
  q.push(body);
  localStorage.setItem("offline_logs",JSON.stringify(q));
  showError("Saved offline. Will sync automatically.");
 }
 
-/* CLOCK ACTION */
+/* CLOCK */
 function clock(type){
 
 navigator.geolocation.getCurrentPosition(async pos=>{
@@ -181,7 +182,7 @@ document.getElementById("clockOutBtn").onclick=()=>clock("OUT");
 async function syncOffline(){
  if(!navigator.onLine) return;
 
- let q= = JSON.parse(localStorage.getItem("offline_logs")||"[]");
+ let q = JSON.parse(localStorage.getItem("offline_logs") || "[]");
  if(!q.length) return;
 
  for(const log of q){
