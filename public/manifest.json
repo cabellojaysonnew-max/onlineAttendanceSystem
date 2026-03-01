@@ -1,0 +1,9 @@
+
+{
+  "name": "DAR Remote Attendance",
+  "short_name": "DAR Logs",
+  "display": "standalone",
+  "start_url": "/",
+  "background_color": "#0b5d3b",
+  "theme_color": "#c9a227"
+}

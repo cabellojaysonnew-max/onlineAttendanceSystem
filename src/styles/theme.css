@@ -1,0 +1,28 @@
+
+body{
+ font-family:sans-serif;
+ background:#f4f6f5;
+}
+
+.card{
+ max-width:420px;
+ margin:auto;
+ background:white;
+ padding:20px;
+ border-radius:18px;
+ box-shadow:0 10px 25px rgba(0,0,0,.08);
+}
+
+.btn{
+ background:#0b5d3b;
+ color:white;
+ padding:14px;
+ border:none;
+ border-radius:12px;
+ width:100%;
+ font-size:18px;
+}
+
+.gold{
+ color:#c9a227;
+}

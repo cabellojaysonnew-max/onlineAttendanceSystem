@@ -1,0 +1,18 @@
+
+<link rel="stylesheet" href="../styles/theme.css">
+
+<div class="card">
+  <h2 class="gold">DAR Attendance Login</h2>
+  <input id="emp" placeholder="Employee ID" style="width:100%;padding:10px;margin:10px 0;">
+  <button class="btn" onclick="login()">LOGIN</button>
+  <p id="status"></p>
+</div>
+
+<script>
+function login(){
+  const emp = document.getElementById("emp").value;
+  if(!emp) return;
+  localStorage.emp_id = emp;
+  window.location = "app.html";
+}
+</script>
