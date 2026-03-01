@@ -1,7 +1,6 @@
-const CACHE_NAME = "dar-attendance-v3";
+const CACHE_NAME = "dar-attendance-v4";
 
 const urlsToCache = [
-  "/",
   "index.html",
   "dashboard.html",
   "style.css",
@@ -20,7 +19,7 @@ self.addEventListener("install", event => {
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.map(key => key !== CACHE_NAME && caches.delete(key)))
+      Promise.all(keys.map(k => k !== CACHE_NAME && caches.delete(k)))
     )
   );
   self.clients.claim();

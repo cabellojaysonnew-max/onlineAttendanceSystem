@@ -1,3 +1,4 @@
+import bcrypt from "https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/+esm";
 import { supabase } from "./supabase.js";
 
 function isMobile(){
@@ -13,7 +14,6 @@ function getDeviceId(){
   return id;
 }
 
-/* WAIT UNTIL PAGE LOADS */
 document.addEventListener("DOMContentLoaded", () => {
 
   const loginBtn = document.getElementById("loginBtn");
@@ -25,7 +25,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if(employee){
     initDashboard(employee);
   }
-
 });
 
 async function login(){
