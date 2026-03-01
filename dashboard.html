@@ -8,33 +8,33 @@
 <link rel="stylesheet" href="style.css">
 </head>
 
-<body class="app-bg">
+<body class="bg">
 
-<div class="app-wrapper">
+<div class="wrapper">
 
-<img src="logo_dar.png" class="logo small"/>
+<img src="logo_dar.png" class="logo small">
 
 <h2 class="dash-title">Field Attendance</h2>
 
 <div class="card">
-    <h3 id="name"></h3>
-    <p id="empid"></p>
+<h3 id="name"></h3>
+<p id="empid"></p>
 </div>
 
 <div class="card">
-    <button id="clockBtn" class="primary-btn" onclick="clockIn()">Clock In</button>
-    <button class="secondary-btn" onclick="logout()">Logout</button>
-    <p id="clockError" class="error"></p>
+<button id="clockBtn" class="primary" onclick="clockIn()">Clock In</button>
+<button class="secondary" onclick="logout()">Logout</button>
+<p id="clockError" class="error"></p>
 </div>
 
 <div class="card">
-    <h3>📍 Current Location</h3>
-    <p id="currentLocation">Detecting location...</p>
+<h3>📍 Current Location</h3>
+<p id="location">Detecting...</p>
 </div>
 
 <div class="card">
-    <h3>Last 20 Mobile Logs</h3>
-    <div id="history"></div>
+<h3>Last 20 Mobile Logs</h3>
+<div id="history"></div>
 </div>
 
 </div>

@@ -1,12 +1,12 @@
 
 body{
 margin:0;
-font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial;
-background:#f4f7f5;
+font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto;
+background:#f5f7f6;
 color:#1c1c1e;
 }
 
-.app-wrapper{
+.wrapper{
 max-width:420px;
 margin:auto;
 padding:20px;
@@ -40,7 +40,7 @@ font-weight:600;
 
 .subtitle{
 text-align:center;
-color:#9c7c1d;
+color:#b8972e;
 margin-bottom:18px;
 }
 
@@ -49,7 +49,7 @@ background:white;
 border-radius:18px;
 padding:18px;
 margin-top:15px;
-box-shadow:0 6px 20px rgba(0,0,0,.06);
+box-shadow:0 6px 18px rgba(0,0,0,.06);
 }
 
 .input{
@@ -57,13 +57,12 @@ width:100%;
 padding:14px;
 margin-bottom:12px;
 border-radius:14px;
-border:1px solid #e2e2e2;
-font-size:16px;
+border:1px solid #e3e3e3;
 background:#fafafa;
-box-sizing:border-box;
+font-size:16px;
 }
 
-.primary-btn{
+.primary{
 width:100%;
 padding:15px;
 border:none;
@@ -71,10 +70,9 @@ border-radius:16px;
 background:#1b5e20;
 color:white;
 font-size:17px;
-font-weight:500;
 }
 
-.secondary-btn{
+.secondary{
 width:100%;
 padding:14px;
 margin-top:10px;
@@ -86,7 +84,7 @@ font-size:16px;
 }
 
 .error{
-color:#d32f2f;
+color:#c62828;
 font-size:14px;
 margin-top:8px;
 }

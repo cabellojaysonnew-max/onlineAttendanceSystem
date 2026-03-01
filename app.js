@@ -8,11 +8,21 @@ const headers={
 "Content-Type":"application/json"
 };
 
-// Session check
+// DEVICE ID (first login binds device)
+function getDeviceId(){
+let id=localStorage.getItem("dar_device_id");
+if(!id){
+id=crypto.randomUUID();
+localStorage.setItem("dar_device_id",id);
+}
+return id;
+}
+
+// SESSION CHECK
 if(location.pathname.includes("dashboard")){
-    const emp=sessionStorage.getItem("emp");
-    if(!emp) location.href="index.html";
-    else loadDashboard();
+const emp=sessionStorage.getItem("emp");
+if(!emp) location.href="index.html";
+else initDashboard();
 }
 
 // LOGIN
@@ -26,8 +36,18 @@ const data=await res.json();
 
 if(!data.length) throw "Employee not found";
 
-if(pass!=="1111" && !data[0].pass.startsWith("$2b$"))
-    throw "Invalid password";
+const deviceId=getDeviceId();
+
+// Register first device
+if(!data[0].mobile_device_id){
+await fetch(`${SUPABASE_URL}/rest/v1/employees?emp_id=eq.${emp}`,{
+method:"PATCH",
+headers,
+body:JSON.stringify({mobile_device_id:deviceId})
+});
+}else if(data[0].mobile_device_id!==deviceId){
+throw "Account registered to another mobile device";
+}
 
 sessionStorage.setItem("emp",emp);
 sessionStorage.setItem("name",data[0].full_name);
@@ -39,34 +59,30 @@ document.getElementById("loginError").innerText=err;
 }
 }
 
-// Dashboard load
-function loadDashboard(){
+// DASHBOARD
+function initDashboard(){
 document.getElementById("name").innerText=sessionStorage.getItem("name");
 document.getElementById("empid").innerText=sessionStorage.getItem("emp");
-fetchHistory();
 detectLocation();
+fetchHistory();
 }
 
-// Reverse geocode (GPS -> place name)
+// Reverse geocode
 async function reverseGeocode(lat,lon){
-try{
 const r=await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
 const d=await r.json();
 return d.display_name || "Location detected";
-}catch{
-return "Location unavailable";
-}
 }
 
-// Detect location for dashboard display
+// GPS detect
 function detectLocation(){
 navigator.geolocation.getCurrentPosition(async pos=>{
 const place=await reverseGeocode(pos.coords.latitude,pos.coords.longitude);
-document.getElementById("currentLocation").innerText=place;
+document.getElementById("location").innerText=place;
 },{enableHighAccuracy:true,maximumAge:0});
 }
 
-// CLOCK IN WITH ERROR DETECTION
+// CLOCK IN
 async function clockIn(){
 
 const btn=document.getElementById("clockBtn");
@@ -79,12 +95,13 @@ if(!emp) throw "Session expired";
 
 const today=new Date().toISOString().split("T")[0];
 
+// Prevent multiple entry
 const check=await fetch(
-`${SUPABASE_URL}/rest/v1/attendance_logs?emp_id=eq.${emp}&log_time=gte.${today}T00:00:00&device_id=eq.MOBILE_WEB`,
+`${SUPABASE_URL}/rest/v1/attendance_logs?emp_id=eq.${emp}&device_id=eq.MOBILE_WEB&log_time=gte.${today}T00:00:00`,
 {headers});
 
-const existing=await check.json();
-if(existing.length>0) throw "Already clocked in today";
+const exist=await check.json();
+if(exist.length>0) throw "Already clocked in today";
 
 const pos=await new Promise((resolve,reject)=>{
 navigator.geolocation.getCurrentPosition(resolve,reject,
@@ -92,8 +109,7 @@ navigator.geolocation.getCurrentPosition(resolve,reject,
 });
 
 const place=await reverseGeocode(pos.coords.latitude,pos.coords.longitude);
-
-document.getElementById("currentLocation").innerText=place;
+document.getElementById("location").innerText=place;
 
 const now=new Date().toISOString();
 
@@ -116,10 +132,9 @@ body:JSON.stringify(payload)
 });
 
 const result=await save.json();
-
 if(!save.ok) throw JSON.stringify(result);
 
-alert("✅ Attendance recorded");
+alert("✅ Attendance Recorded");
 fetchHistory();
 
 }catch(err){
