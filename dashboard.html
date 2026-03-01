@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>DAR Field Attendance</title>
-<link rel="manifest" href="manifest.json">
 <link rel="stylesheet" href="style.css">
 </head>
 
@@ -12,8 +11,12 @@
 
 <div class="app-container">
 
-<div class="app-header">
-<h2>DAR Field Attendance</h2>
+<div class="dashboard-header">
+<img src="logo_dar.png" class="logo-small">
+<div>
+<h2>DAR CAMARINES SUR 1</h2>
+<span>Field Attendance Monitoring System</span>
+</div>
 </div>
 
 <div class="card">
@@ -22,9 +25,9 @@
 </div>
 
 <div class="card">
-<div id="statusBadge" class="badge warning">Not Started</div>
-<button id="clockBtn" class="primary-btn large-btn" onclick="clockIn()">Clock In</button>
+<button id="clockBtn" class="primary-btn">Clock In</button>
 <button class="logout-btn" onclick="logout()">Logout</button>
+<p id="deviceNotice" class="device-note"></p>
 </div>
 
 <div class="card">
@@ -35,11 +38,5 @@
 </div>
 
 <script type="module" src="app.js"></script>
-<script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js');
-}
-</script>
-
 </body>
 </html>
