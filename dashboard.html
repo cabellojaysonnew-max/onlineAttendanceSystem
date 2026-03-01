@@ -5,30 +5,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Dashboard</title>
 <link rel="stylesheet" href="style.css">
-<script src="app.js" defer></script>
+<script defer src="dashboard.js"></script>
 </head>
-
 <body>
 
-<div class="header">
-<img src="logo_dar.png" class="logo-small">
-<h2>DAR Field Attendance</h2>
-</div>
-
+<div class="app">
 <div class="card">
-<h3 id="empName"></h3>
-<p id="empId"></p>
-</div>
+<h3 id="name"></h3>
+<p id="empid"></p>
 
-<div class="card">
-<h4>Today's Status</h4>
 <button id="clockBtn">Clock In</button>
-<p id="status"></p>
-</div>
+<button onclick="logout()">Logout</button>
 
-<div class="card">
-<h4>Recent History</h4>
+<h4>Recent Attendance</h4>
 <div id="history"></div>
+
+<div id="errorBox"></div>
+</div>
 </div>
 
 </body>

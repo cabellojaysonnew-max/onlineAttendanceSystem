@@ -3,25 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DAR Login</title>
+<title>DAR Field Attendance</title>
+
 <link rel="stylesheet" href="style.css">
-<script src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/dist/bcrypt.min.js" defer></script>
-<script src="app.js" defer></script>
+
+<script src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/dist/bcrypt.min.js"></script>
+<script defer src="app.js"></script>
 </head>
 
-<body class="center">
+<body>
+<div class="app">
+  <div class="card">
+    <img src="logo_dar.png" class="logo">
+    <h2>DAR CAMARINES SUR 1</h2>
+    <p class="subtitle">Field Attendance Monitoring System</p>
 
-<div class="card login-card">
-<img src="logo_dar.png" class="logo">
-<h2>DAR CAMARINES SUR 1</h2>
-<p class="subtitle">Field Attendance Monitoring System</p>
+    <input id="emp" placeholder="Employee ID">
+    <input id="pass" type="password" placeholder="Password">
 
-<input id="emp" placeholder="Employee ID">
-<input id="pass" type="password" placeholder="Password">
-
-<button id="loginBtn">Login</button>
-<p id="error" class="error"></p>
+    <button id="loginBtn">Login</button>
+    <div id="errorBox"></div>
+  </div>
 </div>
-
 </body>
 </html>
