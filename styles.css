@@ -3,12 +3,10 @@
  --dar-green:#0B6B3A;
  --dar-gold:#C9A227;
 }
-
 body{
  font-family:Arial;
  background:#f4f6f5;
 }
-
 .card{
  background:white;
  padding:25px;
@@ -19,7 +17,6 @@ body{
  margin-top:10%;
  box-shadow:0 5px 20px rgba(0,0,0,.1);
 }
-
 button{
  background:var(--dar-green);
  color:white;
@@ -31,7 +28,6 @@ button{
  margin-top:10px;
  cursor:pointer;
 }
-
 input{
  width:100%;
  padding:10px;
