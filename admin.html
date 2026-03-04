@@ -3,19 +3,19 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DAR Attendance</title>
+<title>Admin Monitoring</title>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <div class="card">
-<h2>DAR Field Attendance</h2>
-<input id="emp_id" placeholder="Employee ID">
-<input id="password" type="password" placeholder="Password">
-<button onclick="login()">Login</button>
-<p id="msg"></p>
+<h2>Admin Monitoring</h2>
+<input type="date" id="filterDate">
+<button onclick="loadLogs()">Filter</button>
+<div id="logs"></div>
+<button onclick="logout()">Logout</button>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 <script src="supabase.js"></script>
-<script src="auth.js"></script>
+<script src="admin.js"></script>
 </body>
 </html>

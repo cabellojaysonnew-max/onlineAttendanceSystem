@@ -3,28 +3,20 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Dashboard</title>
-<link rel="stylesheet" href="style.css">
+<title>Attendance Dashboard</title>
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div class="header">
-<img src="dar_logo.png" class="logo"/>
-<h2>DAR Field Attendance</h2>
-</div>
-
 <div class="card">
-<button id="clockIn">Clock In</button>
-<button id="clockOut">Clock Out</button>
+<h2>Attendance</h2>
+<button onclick="clock()">Clock In / Out</button>
 <p id="status"></p>
+<button onclick="logout()">Logout</button>
 </div>
-
-<div class="card">
-<h3>Today's Logs</h3>
-<ul id="logs"></ul>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 <script src="supabase.js"></script>
-<script src="app.js"></script>
+<script src="gps.js"></script>
+<script src="offline.js"></script>
+<script src="attendance.js"></script>
 </body>
 </html>
