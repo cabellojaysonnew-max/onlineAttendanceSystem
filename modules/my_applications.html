@@ -1,9 +1,9 @@
 
 <div class="card">
 
-<h2>DTR Logs</h2>
+<h2>My Travel Orders</h2>
 
-<div id="logs"></div>
+<div id="list"></div>
 
 </div>
 
@@ -14,22 +14,21 @@ import { supabaseClient } from "../js/supabase.js"
 const emp_id=localStorage.getItem("emp_id")
 
 const {data}=await supabaseClient
-.from("attendance_logs")
+.from("travel_orders")
 .select("*")
 .eq("emp_id",emp_id)
-.order("log_time",{ascending:false})
-.limit(20)
+.order("created_at",{ascending:false})
 
 let html=""
 
-;(data||[]).forEach(l=>{
+;(data||[]).forEach(d=>{
 
 html+=`<div class="row">
-${new Date(l.log_time).toLocaleString()}
+${d.destination} | ${d.status}
 </div>`
 
 })
 
-document.getElementById("logs").innerHTML=html
+document.getElementById("list").innerHTML=html
 
 </script>

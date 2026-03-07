@@ -1,7 +1,7 @@
 
 <div class="card">
 
-<h3>Leave Application</h3>
+<h2>Leave Application</h2>
 
 <select id="type">
 <option>VACATION</option>
@@ -12,7 +12,7 @@
 <input type="date" id="start">
 <input type="date" id="end">
 
-<button onclick="submitLeave()">Submit</button>
+<button onclick="submitLeave()" class="btn-main">Submit Leave</button>
 
 </div>
 
@@ -20,7 +20,7 @@
 
 import { supabaseClient } from "../js/supabase.js"
 
-window.submitLeave = async function(){
+window.submitLeave=async function(){
 
 const emp_id=localStorage.getItem("emp_id")
 
@@ -40,7 +40,7 @@ transaction_type:"APPLICATION"
 }
 ])
 
-alert("Leave submitted")
+alert("Leave application submitted")
 
 }
 

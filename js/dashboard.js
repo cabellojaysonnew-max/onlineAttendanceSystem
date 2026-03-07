@@ -1,22 +1,19 @@
 
-import { supabaseClient } from "./supabase.js"
+const name=localStorage.getItem("emp_name")
+const pos=localStorage.getItem("emp_position")
 
-const emp_name=localStorage.getItem("emp_name")
-const emp_position=localStorage.getItem("emp_position")
-
-document.getElementById("empName").innerText =
-emp_name.toUpperCase()+", "+emp_position
+document.getElementById("empName").innerText=name.toUpperCase()
+document.getElementById("empPosition").innerText=pos
 
 const today=new Date()
-
 document.getElementById("todayDate").innerText=
-"Today is "+today.toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"})
+today.toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"})
 
-window.loadPage = async function(page){
+window.loadPage=async function(page){
 
-const res = await fetch(page)
-const html = await res.text()
+const r=await fetch(page)
+const html=await r.text()
 
-document.getElementById("content").innerHTML = html
+document.getElementById("content").innerHTML=html
 
 }

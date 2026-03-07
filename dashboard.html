@@ -3,7 +3,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DAR Dashboard</title>
+<title>Employee Portal</title>
 <link rel="stylesheet" href="css/style.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -11,19 +11,29 @@
 <body>
 
 <div class="sidebar">
-<h2>DAR CS I</h2>
+
+<div class="brand">
+PERSONNEL MG'T
+<span>DAR CS I - Employee Portal</span>
+</div>
+
+<div class="profile">
+<div id="empName"></div>
+<div id="empPosition"></div>
+</div>
 
 <button onclick="loadPage('modules/travel_order.html')">New Travel Order</button>
-<button onclick="loadPage('modules/dtr.html')">DTR Logs</button>
+<button onclick="loadPage('modules/my_applications.html')">My Applications</button>
+<button onclick="loadPage('modules/dtr.html')">DTR / Log View</button>
 <button onclick="loadPage('modules/leave.html')">Leave Application</button>
 <button onclick="loadPage('modules/notifications.html')">Notifications</button>
+
 </div>
 
 <div class="main">
 
 <div class="header">
-<h2 id="empName"></h2>
-<p>DAR Camarines Sur 1 Personnel Management System</p>
+<h1>Employee Portal</h1>
 <p id="todayDate"></p>
 </div>
 

@@ -1,7 +1,7 @@
 
 <div class="card">
 
-<h3>Travel Order Filing</h3>
+<h2>New Travel Order Application</h2>
 
 <label>Destination</label>
 <input id="dest">
@@ -15,7 +15,7 @@
 <label>End Date</label>
 <input type="date" id="end">
 
-<button onclick="submitTO()">Submit Travel Order</button>
+<button onclick="submitTO()" class="btn-main">Submit Official Request</button>
 
 </div>
 
@@ -23,55 +23,22 @@
 
 import { supabaseClient } from "../js/supabase.js"
 
-async function checkLeave(emp_id,start,end){
-
-const {data}=await supabaseClient
-.from("leave_ledger")
-.select("*")
-.eq("emp_id",emp_id)
-.in("transaction_type",["APPROVED","PROCESSED"])
-
-if(!data) return false
-
-for(const l of data){
-
-let s=new Date(l.start_date)
-let e=new Date(l.end_date)
-
-let st=new Date(start)
-let en=new Date(end)
-
-if(st<=e && en>=s){
-return true
-}
-
-}
-
-return false
-
-}
-
 window.submitTO = async function(){
 
 const emp_id=localStorage.getItem("emp_id")
 
-const destination=document.getElementById("dest").value
-const purpose=document.getElementById("purpose").value
+const dest=document.getElementById("dest").value
+const purp=document.getElementById("purpose").value
 const start=document.getElementById("start").value
 const end=document.getElementById("end").value
-
-if(await checkLeave(emp_id,start,end)){
-alert("Leave conflict detected")
-return
-}
 
 await supabaseClient
 .from("travel_orders")
 .insert([
 {
 emp_id:emp_id,
-destination:destination,
-purpose:purpose,
+destination:dest,
+purpose:purp,
 start_date:start,
 end_date:end,
 status:"PENDING"

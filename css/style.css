@@ -5,29 +5,57 @@ font-family:Segoe UI;
 background:#f3f4f6;
 }
 
-.login-box{
-width:320px;
-margin:auto;
-margin-top:120px;
+.login-body{
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+
+.login-wrapper{
+display:flex;
+width:850px;
+box-shadow:0 4px 10px rgba(0,0,0,0.1);
+}
+
+.login-left{
+background:#003811;
+color:white;
+padding:40px;
+width:40%;
+}
+
+.login-right{
 background:white;
-padding:30px;
-border-radius:8px;
+padding:40px;
+width:60%;
 }
 
 .sidebar{
-width:250px;
+position:fixed;
+width:260px;
 height:100vh;
 background:#003811;
 color:white;
-position:fixed;
 padding:20px;
 }
 
+.brand{
+color:#D4AF37;
+font-weight:bold;
+margin-bottom:20px;
+}
+
+.profile{
+background:#052e16;
+padding:15px;
+margin-bottom:20px;
+}
+
 .sidebar button{
-display:block;
 width:100%;
-margin:10px 0;
 padding:12px;
+margin:6px 0;
 background:#006400;
 border:none;
 color:white;
@@ -35,37 +63,32 @@ cursor:pointer;
 }
 
 .main{
-margin-left:250px;
+margin-left:260px;
 padding:30px;
-}
-
-.header{
-margin-bottom:20px;
 }
 
 .card{
 background:white;
-padding:20px;
+padding:25px;
 border-radius:8px;
-max-width:600px;
+max-width:800px;
 }
 
 input,select{
-display:block;
-margin:10px 0;
-padding:8px;
 width:100%;
+padding:10px;
+margin:8px 0;
 }
 
-button{
-padding:10px;
+.btn-main{
 background:#006400;
 color:white;
+padding:12px;
 border:none;
 cursor:pointer;
 }
 
-.notif{
-padding:10px;
-border-bottom:1px solid #ddd;
+.row{
+padding:8px;
+border-bottom:1px solid #eee;
 }

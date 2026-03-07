@@ -1,7 +1,7 @@
 
 import { supabaseClient } from "./supabase.js"
 
-async function login(){
+window.login = async function(){
 
 const emp_id=document.getElementById("emp_id").value
 const pass=document.getElementById("pass").value
@@ -26,11 +26,7 @@ localStorage.setItem("emp_position",data.position)
 location.href="dashboard.html"
 
 }else{
-
 alert("Invalid password")
-
 }
 
 }
-
-window.login=login
