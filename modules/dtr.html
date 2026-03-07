@@ -1,7 +1,11 @@
 
+<div class="card">
+
 <h3>DTR Logs</h3>
 
 <div id="logs"></div>
+
+</div>
 
 <script type="module">
 
@@ -22,7 +26,7 @@ let html=""
 ;(data||[]).forEach(log=>{
 
 html+=`<div>
-${new Date(log.log_time).toLocaleTimeString()} 
+${new Date(log.log_time).toLocaleTimeString()}
 </div>`
 
 })

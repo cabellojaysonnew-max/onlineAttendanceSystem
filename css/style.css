@@ -1,41 +1,60 @@
 
 body{
-font-family:Arial;
-background:#f4f4f4;
+margin:0;
+font-family:Segoe UI;
+background:#f3f4f6;
 }
 
 .login-box{
-width:300px;
+width:320px;
 margin:auto;
 margin-top:120px;
 background:white;
+padding:30px;
+border-radius:8px;
+}
+
+.sidebar{
+width:250px;
+height:100vh;
+background:#003811;
+color:white;
+position:fixed;
 padding:20px;
+}
+
+.sidebar button{
+display:block;
+width:100%;
+margin:10px 0;
+padding:12px;
+background:#006400;
+border:none;
+color:white;
+cursor:pointer;
+}
+
+.main{
+margin-left:250px;
+padding:30px;
 }
 
 .header{
-background:#003811;
-color:white;
-padding:15px;
+margin-bottom:20px;
 }
 
-.menu{
-padding:10px;
-}
-
-.menu button{
-margin-right:10px;
-}
-
-#content{
+.card{
 background:white;
-margin:20px;
 padding:20px;
+border-radius:8px;
+max-width:600px;
 }
 
 input,select{
 display:block;
 margin:10px 0;
 padding:8px;
+width:100%;
 }
 
 button{

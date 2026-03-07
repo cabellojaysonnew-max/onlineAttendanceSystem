@@ -1,13 +1,15 @@
 
+<div class="card">
+
 <h3>Notifications</h3>
 
 <div id="notif"></div>
 
+</div>
+
 <script type="module">
 
 import { supabaseClient } from "../js/supabase.js"
-
-const emp_id=localStorage.getItem("emp_id")
 
 const {data}=await supabaseClient
 .from("notifications")

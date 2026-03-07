@@ -10,20 +10,26 @@
 
 <body>
 
-<div class="header">
-<h2 id="empName"></h2>
-<div>DAR Camarines Sur 1 Personnel Management System</div>
-<div id="todayDate"></div>
-</div>
+<div class="sidebar">
+<h2>DAR CS I</h2>
 
-<div class="menu">
-<button onclick="loadPage('modules/travel_order.html')">Travel Order</button>
+<button onclick="loadPage('modules/travel_order.html')">New Travel Order</button>
+<button onclick="loadPage('modules/dtr.html')">DTR Logs</button>
 <button onclick="loadPage('modules/leave.html')">Leave Application</button>
-<button onclick="loadPage('modules/dtr.html')">DTR Viewer</button>
 <button onclick="loadPage('modules/notifications.html')">Notifications</button>
 </div>
 
+<div class="main">
+
+<div class="header">
+<h2 id="empName"></h2>
+<p>DAR Camarines Sur 1 Personnel Management System</p>
+<p id="todayDate"></p>
+</div>
+
 <div id="content"></div>
+
+</div>
 
 <script type="module" src="js/dashboard.js"></script>
 

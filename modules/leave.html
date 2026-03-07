@@ -1,20 +1,20 @@
 
+<div class="card">
+
 <h3>Leave Application</h3>
 
-Leave Type
 <select id="type">
 <option>VACATION</option>
 <option>SICK</option>
 <option>SPL</option>
 </select>
 
-Start Date
 <input type="date" id="start">
-
-End Date
 <input type="date" id="end">
 
-<button onclick="submitLeave()">Submit Leave</button>
+<button onclick="submitLeave()">Submit</button>
+
+</div>
 
 <script type="module">
 
@@ -40,7 +40,7 @@ transaction_type:"APPLICATION"
 }
 ])
 
-alert("Leave application submitted")
+alert("Leave submitted")
 
 }
 
