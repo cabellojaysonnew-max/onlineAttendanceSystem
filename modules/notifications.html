@@ -1,0 +1,28 @@
+
+<h3>Notifications</h3>
+
+<div id="notif"></div>
+
+<script type="module">
+
+import { supabaseClient } from "../js/supabase.js"
+
+const emp_id=localStorage.getItem("emp_id")
+
+const {data}=await supabaseClient
+.from("notifications")
+.select("*")
+.order("created_at",{ascending:false})
+.limit(20)
+
+let html=""
+
+;(data||[]).forEach(n=>{
+
+html+=`<div class="notif">${n.message}</div>`
+
+})
+
+document.getElementById("notif").innerHTML=html
+
+</script>

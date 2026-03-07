@@ -3,20 +3,29 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Dashboard</title>
-<link rel="stylesheet" href="styles.css">
+<title>DAR Dashboard</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
+
 <body>
-<div class="card">
-<h2>Attendance</h2>
-<button onclick="clock()" id="clockBtn">Clock In / Out</button>
-<p id="status"></p>
-<button onclick="logout()">Logout</button>
+
+<div class="header">
+<h2 id="empName"></h2>
+<div>DAR Camarines Sur 1 Personnel Management System</div>
+<div id="todayDate"></div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-<script src="supabase.js"></script>
-<script src="gps.js"></script>
-<script src="offline.js"></script>
-<script src="attendance.js"></script>
+
+<div class="menu">
+<button onclick="loadPage('modules/travel_order.html')">Travel Order</button>
+<button onclick="loadPage('modules/leave.html')">Leave Application</button>
+<button onclick="loadPage('modules/dtr.html')">DTR Viewer</button>
+<button onclick="loadPage('modules/notifications.html')">Notifications</button>
+</div>
+
+<div id="content"></div>
+
+<script type="module" src="js/dashboard.js"></script>
+
 </body>
 </html>

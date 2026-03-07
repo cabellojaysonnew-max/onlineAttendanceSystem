@@ -1,0 +1,32 @@
+
+<h3>DTR Logs</h3>
+
+<div id="logs"></div>
+
+<script type="module">
+
+import { supabaseClient } from "../js/supabase.js"
+
+const emp_id=localStorage.getItem("emp_id")
+
+const today=new Date().toISOString().split("T")[0]
+
+const {data}=await supabaseClient
+.from("attendance_logs")
+.select("*")
+.eq("emp_id",emp_id)
+.gte("log_time",today)
+
+let html=""
+
+;(data||[]).forEach(log=>{
+
+html+=`<div>
+${new Date(log.log_time).toLocaleTimeString()} 
+</div>`
+
+})
+
+document.getElementById("logs").innerHTML=html
+
+</script>

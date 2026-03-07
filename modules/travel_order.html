@@ -1,0 +1,38 @@
+
+<h3>Travel Order Filing</h3>
+
+Destination
+<input id="dest">
+
+Purpose
+<input id="purpose">
+
+<button onclick="submitTO()">Submit Travel Order</button>
+
+<script type="module">
+
+import { supabaseClient } from "../js/supabase.js"
+
+window.submitTO = async function(){
+
+const emp_id=localStorage.getItem("emp_id")
+
+const destination=document.getElementById("dest").value
+const purpose=document.getElementById("purpose").value
+
+await supabaseClient
+.from("travel_orders")
+.insert([
+{
+emp_id:emp_id,
+destination:destination,
+purpose:purpose,
+status:"PENDING"
+}
+])
+
+alert("Travel Order Submitted")
+
+}
+
+</script>

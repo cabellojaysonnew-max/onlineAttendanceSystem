@@ -3,19 +3,24 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DAR Attendance</title>
-<link rel="stylesheet" href="styles.css">
+<title>DAR Personnel System</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
+
 <body>
-<div class="card">
-<h2>DAR Field Attendance</h2>
+
+<div class="login-box">
+<h2>DAR Camarines Sur I</h2>
+
 <input id="emp_id" placeholder="Employee ID">
-<input id="password" type="password" placeholder="Password">
-<button onclick="login()" id="loginBtn">Login</button>
-<p id="msg"></p>
+<input id="pass" type="password" placeholder="Password">
+
+<button onclick="login()">LOGIN</button>
+
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-<script src="supabase.js"></script>
-<script src="auth.js"></script>
+
+<script type="module" src="js/login.js"></script>
+
 </body>
 </html>
